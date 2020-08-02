@@ -1,6 +1,7 @@
 const React = require('react');
 
 const SCROLLBAR_SIZE = 15;
+const VIEWPORT_BUFFER = 100; // in pixels
 
 let getStarts = (sizes) => {
   let starts = [];
@@ -13,28 +14,66 @@ let getStarts = (sizes) => {
   return starts;
 }
 
-module.exports = (props) => {
-  let viewModel = props.viewModel;
+let getViewportCells = (viewModel, gridMeta) => {
   let gridX = viewModel.x;
   let gridY = viewModel.y;
+  let gridWidth = viewModel.width;
+  let gridHeight = viewModel.height;
+
+  let viewportCells = viewModel.cells.filter((cell) => {
+    let cellViewModel = cell.viewModel;
+    let x = gridMeta.colStarts[cellViewModel.col];
+    let y = gridMeta.rowStarts[cellViewModel.row];
+    return x >= gridX - VIEWPORT_BUFFER && x <= gridX + gridWidth + VIEWPORT_BUFFER && y >= gridY - VIEWPORT_BUFFER && y <= gridY + gridHeight + VIEWPORT_BUFFER;
+  });
+
+  console.log('rendering ' + viewportCells.length + '/' + viewModel.cells.length + ' cells');
+
+  return viewportCells;
+};
+
+let getCellRect = (gridMeta, col, row) => {
+  return {
+    x: -1 * gridMeta.x + gridMeta.colStarts[col],
+    y: -1 * gridMeta.y + gridMeta.rowStarts[row],
+    width: gridMeta.colWidths[col],
+    height: gridMeta.rowHeights[row]
+  };
+};
+
+let getGridMeta = (viewModel) => {
   let colWidths = viewModel.colWidths;
   let rowHeights = viewModel.rowHeights;
   let colStarts = getStarts(colWidths);
   let rowStarts = getStarts(rowHeights);
-  let shadowGridWidth = colStarts[colStarts.length-1] + colWidths[colWidths.length-1];
-  let shadowGridHeight = rowStarts[rowStarts.length-1] + rowHeights[rowHeights.length-1];
 
-  // for now render all.  will need to filter down
-  let viewportCells = viewModel.cells;
+  return {
+    x: viewModel.x,
+    y: viewModel.y,
+    colWidths: colWidths,
+    rowHeights: rowHeights,
+    colStarts: colStarts,
+    rowStarts: rowStarts,
+    shadowGridWidth: colStarts[colStarts.length-1] + colWidths[colWidths.length-1],
+    shadowGridHeight: rowStarts[rowStarts.length-1] + rowHeights[rowHeights.length-1]
+  };
+};
+
+module.exports = (props) => {
+  let viewModel = props.viewModel;
+  let gridMeta = getGridMeta(viewModel);
+
+  let viewportCells = getViewportCells(viewModel, gridMeta);
 
   let reactCells = [];
 
   viewportCells.forEach((cell) => {
     let cellViewModel = cell.viewModel;
-    let x = gridX + colStarts[cellViewModel.col];
-    let y = gridY + rowStarts[cellViewModel.row];
-    let width = colWidths[cellViewModel.col];
-    let height = rowHeights[cellViewModel.row];
+    let cellRect = getCellRect(gridMeta, cellViewModel.col, cellViewModel.row);
+    let x = cellRect.x;
+    let y = cellRect.y;
+    let width = cellRect.width;
+    let height = cellRect.height;
 
     let innerCell = React.createElement(cell.renderer, cellViewModel, []);
 
@@ -53,8 +92,8 @@ module.exports = (props) => {
   let shadowContent = React.createElement('div', {
     className: 'power-grid-shadow-content',
     style: {
-      width: shadowGridWidth + 'px',
-      height: shadowGridHeight + 'px',
+      width: gridMeta.shadowGridWidth + 'px',
+      height: gridMeta.shadowGridHeight + 'px',
       position: 'absolute'
     }
   }, []);

@@ -51,8 +51,8 @@ let appContainer = document.querySelector('#app');
 
 
 let viewModel = {
-  width: 200,
-  height: 200,
+  width: 600,
+  height: 400,
   x: 0,
   y: 0,
   colWidths: [],
@@ -60,9 +60,9 @@ let viewModel = {
   cells: []
 };
 
-const NUM_COLS = 10;
-const NUM_ROWS = 20;
-const CELL_WIDTH = 50;
+const NUM_COLS = 20;
+const NUM_ROWS = 5000;
+const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
 
 for (let c=0; c<NUM_COLS; c++) {
