@@ -48,7 +48,7 @@
   "scripts": {
     "start": "npm install && npm run build",
     "build": "npm run clean && webpack && npm run build-css && npm run copy-html",
-    "build-css": "node-sass client/PowerGrid.scss public/css/app.css",
+    "build-css": "node-sass client/app.scss public/css/app.css",
     "copy-html": "cp ./client/index.html public/index.html",
     "minify": "./node_modules/uglify-es/bin/uglifyjs public/js/PowerGrid.js -o public/js/PowerGrid.js && ./node_modules/uglifycss/uglifycss public/css/PowerGrid.css --output public/css/PowerGrid.css",
     "clean": "rm -rf ./public && mkdir ./public",
