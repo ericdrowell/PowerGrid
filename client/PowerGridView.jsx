@@ -51,7 +51,7 @@ module.exports = (props) => {
   });
 
   let shadowContent = React.createElement('div', {
-    className: 'shadow-content',
+    className: 'power-grid-shadow-content',
     style: {
       width: shadowGridWidth + 'px',
       height: shadowGridHeight + 'px',
@@ -60,7 +60,7 @@ module.exports = (props) => {
   }, []);
 
   let shadowGrid = React.createElement('div', {
-    className: 'shadow-grid',
+    className: 'power-grid-shadow-grid',
     style: {
       width: viewModel.width + 'px',
       height: viewModel.height + 'px',
@@ -69,7 +69,7 @@ module.exports = (props) => {
   }, shadowContent);
 
   let sceneGrid = React.createElement('div', {
-    className: 'scene-grid',
+    className: 'power-grid-scene-grid',
     style: {
       width: (viewModel.width-SCROLLBAR_SIZE) + 'px',
       height: (viewModel.height-SCROLLBAR_SIZE) + 'px',
