@@ -8,10 +8,10 @@ let appContainer = document.querySelector('#app');
 let viewModel = {
   width: 200,
   height: 200,
-  x: 100,
-  y: 100,
-  colWidths: [50, 50, 50, 50],
-  rowHeights: [20, 20, 20, 20],
+  x: 0,
+  y: 0,
+  colWidths: [150, 150],
+  rowHeights: [150, 150],
   cells: [
     {
       renderer: TextCell,

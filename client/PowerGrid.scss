@@ -1,5 +1,17 @@
 .power-grid {
+  background-color: red;
   position: relative;
+  overflow: hidden;
+  display: inline-block;
+
+  .shadow-grid {
+    overflow: scroll;
+  }
+  .scene-grid {
+    overflow: hidden;
+  }
+
+
 
   .power-grid-cell {
     position: absolute;
@@ -7,7 +19,6 @@
     > div {
       width: 100%;
       height: 100%;
-   
     }
   }
 }
