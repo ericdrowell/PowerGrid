@@ -1,5 +1,5 @@
 .power-grid {
-  background-color: red;
+  //background-color: red;
   position: relative;
   overflow: hidden;
   display: inline-block;
@@ -9,7 +9,7 @@
   }
 
   .power-grid-scene-grid {
-    overflow: hidden;
+    overflow: scroll;
     //z-index: 999;
   }
 

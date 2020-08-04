@@ -1,7 +1,5 @@
 const React = require('react');
 
-const SCROLLBAR_SIZE = 15;
-
 let getStarts = (sizes) => {
   let starts = [];
   let start = 0;
@@ -26,8 +24,8 @@ let getCellIndex = (col, row, numCols) => {
 
 let getCellRect = (gridMeta, col, row) => {
   return {
-    x: -1 * gridMeta.x + gridMeta.colStarts[col],
-    y: -1 * gridMeta.y + gridMeta.rowStarts[row],
+    x: gridMeta.colStarts[col],
+    y: gridMeta.rowStarts[row],
     width: gridMeta.colWidths[col],
     height: gridMeta.rowHeights[row]
   };
@@ -238,6 +236,42 @@ module.exports = (props) => {
     reactCells.push(outerCell);
   });
 
+
+  let backgroundCells = [];
+
+  viewportCells.forEach((cell) => {
+    let cellViewModel = cell.viewModel;
+    let cellRect = getCellRect(gridMeta, cellViewModel.col, cellViewModel.row);
+    let x = cellRect.x - gridMeta.x;
+    let y = cellRect.y - gridMeta.y;
+    let width = cellRect.width;
+    let height = cellRect.height;
+
+    let innerCell = React.createElement(cell.renderer, cellViewModel, []);
+
+    let outerCell = React.createElement('div', {
+      className: 'power-grid-cell',
+      style: {
+        transform: 'translate(' + x + 'px ,' +  y + 'px)',
+        width: width + 'px',
+        height: height + 'px'
+      }
+    }, [innerCell])
+
+    backgroundCells.push(outerCell);
+  });
+
+
+
+  let backgroundGrid = React.createElement('div', {
+    className: 'power-grid-background-grid',
+    style: {
+      width: viewModel.width + 'px',
+      height: viewModel.height + 'px',
+      position: 'absolute'
+    }
+  }, backgroundCells);
+
   let shadowContent = React.createElement('div', {
     className: 'power-grid-shadow-content',
     style: {
@@ -245,27 +279,18 @@ module.exports = (props) => {
       height: gridMeta.shadowGridHeight + 'px',
       position: 'absolute'
     }
-  }, []);
-
-  let shadowGrid = React.createElement('div', {
-    className: 'power-grid-shadow-grid',
-    style: {
-      width: viewModel.width + 'px',
-      height: viewModel.height + 'px',
-      position: 'absolute'
-    }
-  }, shadowContent);
+  }, reactCells);
 
   let sceneGrid = React.createElement('div', {
     className: 'power-grid-scene-grid',
     style: {
-      width: (viewModel.width-SCROLLBAR_SIZE) + 'px',
-      height: (viewModel.height-SCROLLBAR_SIZE) + 'px',
+      width: (viewModel.width) + 'px',
+      height: (viewModel.height) + 'px',
       position: 'absolute'
     }
-  }, reactCells);
+  }, shadowContent);
 
-  let children = [sceneGrid, shadowGrid];
+  let children = [backgroundGrid, sceneGrid];
 
   let grid = React.createElement('div', {
     className: 'power-grid',

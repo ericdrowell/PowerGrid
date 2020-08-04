@@ -7,10 +7,10 @@ let init = (viewModel, ren) => {
   render = ren;
 
   document.addEventListener('scroll', (evt) => {
-    let shadowGridEl = evt.target.closest('.power-grid-shadow-grid');
-    if (shadowGridEl) {
-      viewModel.x = shadowGridEl.scrollLeft;
-      viewModel.y = shadowGridEl.scrollTop;
+    let sceneGridEl = evt.target.closest('.power-grid-scene-grid');
+    if (sceneGridEl) {
+      viewModel.x = sceneGridEl.scrollLeft;
+      viewModel.y = sceneGridEl.scrollTop;
       dirty = true;
     }
   }, true); // scroll does not bubble, must listen on capture
