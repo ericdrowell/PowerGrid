@@ -16,10 +16,24 @@ let viewModel = {
   cells: []
 };
 
-const NUM_COLS = 10;
-const NUM_ROWS = 1000;
+const NUM_COLS = 100;
+const NUM_ROWS = 400;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
+
+let getRating = () => {
+  let val = Math.random();
+
+  if (val < 0.2) {
+    return 'bad'
+  }
+  else if (val < 0.6) {
+    return 'neutral'
+  }
+  else {
+    return 'good';
+  }
+};
 
 for (let c=0; c<NUM_COLS; c++) {
   viewModel.colWidths[c] = CELL_WIDTH;
@@ -35,6 +49,7 @@ for (let r=0; r<NUM_ROWS; r++) {
       renderer: TextCell,
       viewModel: {
         value: c + ',' + r,
+        rating: getRating(),
         col: c,
         row: r
       }

@@ -1,3 +1,18 @@
 .power-grid-text-cell {
-  background-color: #eee
+  background-color: #eee;
+
+  &.bad {
+    background-color: #ffc7ce;
+    color: #9c0006;
+  }
+
+  &.neutral {
+    background-color: #ffeb9c;
+    color: #9c5700;
+  }
+
+  &.good {
+    background-color: #c6efce;
+    color: #267c27;
+  }
 }
