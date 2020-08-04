@@ -7,8 +7,10 @@
   .power-grid-shadow-grid {
     overflow: scroll;
   }
+
   .power-grid-scene-grid {
     overflow: hidden;
+    //z-index: 999;
   }
 
   .power-grid-cell {
