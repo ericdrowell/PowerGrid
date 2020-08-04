@@ -6,50 +6,6 @@ const TextCell = require('./cells/TextCell/TextCell.jsx');
 
 let appContainer = document.querySelector('#app');
 
-// let viewModel = {
-//   width: 200,
-//   height: 200,
-//   x: 0,
-//   y: 0,
-//   colWidths: [150, 150],
-//   rowHeights: [150, 150],
-//   cells: [
-//     {
-//       renderer: TextCell,
-//       viewModel: {
-//         value: 'A',
-//         col: 0,
-//         row: 0
-//       }
-//     },
-//     {
-//       renderer: TextCell,
-//       viewModel: {
-//         value: 'B',
-//         col: 1,
-//         row: 0
-//       }
-//     },
-//     {
-//       renderer: TextCell,
-//       viewModel: {
-//         value: 'C',
-//         col: 0,
-//         row: 1
-//       }
-//     },
-//     {
-//       renderer: TextCell,
-//       viewModel: {
-//         value: 'D',
-//         col: 1,
-//         row: 1
-//       }
-//     }
-//   ]
-// };
-
-
 let viewModel = {
   width: 600,
   height: 400,
@@ -60,8 +16,8 @@ let viewModel = {
   cells: []
 };
 
-const NUM_COLS = 20;
-const NUM_ROWS = 5000;
+const NUM_COLS = 10;
+const NUM_ROWS = 1000;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
 
@@ -73,8 +29,8 @@ for (let r=0; r<NUM_ROWS; r++) {
   viewModel.rowHeights[r] = CELL_HEIGHT;
 }
 
-for (let c=0; c<NUM_COLS; c++) {
-  for (let r=0; r<NUM_ROWS; r++) {
+for (let r=0; r<NUM_ROWS; r++) {
+  for (let c=0; c<NUM_COLS; c++) {
     viewModel.cells.push({
       renderer: TextCell,
       viewModel: {
