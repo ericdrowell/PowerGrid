@@ -206,99 +206,148 @@ let getGridMeta = (viewModel) => {
   };
 };
 
-module.exports = (props) => {
-  let viewModel = props.viewModel;
-  let gridMeta = getGridMeta(viewModel);
 
-  let viewportCells = getViewportCells(viewModel, gridMeta);
+class PowerGrid extends React.Component {
+  constructor() {
+    super();
+    this.myRef = React.createRef();
 
-  let reactCells = [];
+    let that = this;
 
-  viewportCells.forEach((cell) => {
-    let cellViewModel = cell.viewModel;
-    let cellRect = getCellRect(gridMeta, cellViewModel.col, cellViewModel.row);
-    let x = cellRect.x;
-    let y = cellRect.y;
-    let width = cellRect.width;
-    let height = cellRect.height;
+    let dirty = false;
 
-    let innerCell = React.createElement(cell.renderer, cellViewModel, []);
 
-    let outerCell = React.createElement('div', {
-      className: 'power-grid-cell',
-      style: {
-        transform: 'translate(' + x + 'px ,' +  y + 'px)',
-        width: width + 'px',
-        height: height + 'px'
+    let update = () => {
+      if (dirty) {
+        that.forceUpdate();
+        dirty = false;
       }
-    }, [innerCell])
+      requestAnimationFrame(() => {
+        update();
+      });
+    };
 
-    reactCells.push(outerCell);
-  });
-
-
-  let backgroundCells = [];
-
-  viewportCells.forEach((cell) => {
-    let cellViewModel = cell.viewModel;
-    let cellRect = getCellRect(gridMeta, cellViewModel.col, cellViewModel.row);
-    let x = cellRect.x - gridMeta.x;
-    let y = cellRect.y - gridMeta.y;
-    let width = cellRect.width;
-    let height = cellRect.height;
-
-    let innerCell = React.createElement(cell.renderer, cellViewModel, []);
-
-    let outerCell = React.createElement('div', {
-      className: 'power-grid-cell',
-      style: {
-        transform: 'translate(' + x + 'px ,' +  y + 'px)',
-        width: width + 'px',
-        height: height + 'px'
+    document.addEventListener('scroll', (evt) => {
+      let powerGridEl = evt.target.closest('.power-grid');
+      
+      if (powerGridEl === that.myRef.current) {
+        let viewModel = that.props.viewModel;
+        let sceneGridEl = evt.target.closest('.power-grid-scene-grid');
+        viewModel.x = sceneGridEl.scrollLeft;
+        viewModel.y = sceneGridEl.scrollTop;
+        dirty = true;
       }
-    }, [innerCell])
+    }, true); // scroll does not bubble, must listen on capture
 
-    backgroundCells.push(outerCell);
-  });
+    update();
+    
 
 
 
-  let backgroundGrid = React.createElement('div', {
-    className: 'power-grid-background-grid',
-    style: {
-      width: viewModel.width + 'px',
-      height: viewModel.height + 'px',
-      position: 'absolute'
-    }
-  }, backgroundCells);
 
-  let shadowContent = React.createElement('div', {
-    className: 'power-grid-shadow-content',
-    style: {
-      width: gridMeta.shadowGridWidth + 'px',
-      height: gridMeta.shadowGridHeight + 'px',
-      position: 'absolute'
-    }
-  }, reactCells);
+  }
 
-  let sceneGrid = React.createElement('div', {
-    className: 'power-grid-scene-grid',
-    style: {
-      width: (viewModel.width) + 'px',
-      height: (viewModel.height) + 'px',
-      position: 'absolute'
-    }
-  }, shadowContent);
+  render() {
+    let props = this.props;
+    let viewModel = props.viewModel;
+    let gridMeta = getGridMeta(viewModel);
 
-  let children = [backgroundGrid, sceneGrid];
+    let viewportCells = getViewportCells(viewModel, gridMeta);
 
-  let grid = React.createElement('div', {
-    className: 'power-grid',
-    style: {
-      width: viewModel.width + 'px',
-      height: viewModel.height + 'px'
-    }
-  }, children);
+    let reactCells = [];
 
-  return grid;
+    viewportCells.forEach((cell) => {
+      let cellViewModel = cell.viewModel;
+      let cellRect = getCellRect(gridMeta, cellViewModel.col, cellViewModel.row);
+      let x = cellRect.x;
+      let y = cellRect.y;
+      let width = cellRect.width;
+      let height = cellRect.height;
+
+      let innerCell = React.createElement(cell.renderer, cellViewModel, []);
+
+      let outerCell = React.createElement('div', {
+        className: 'power-grid-cell',
+        style: {
+          transform: 'translate(' + x + 'px ,' +  y + 'px)',
+          width: width + 'px',
+          height: height + 'px'
+        }
+      }, [innerCell])
+
+      reactCells.push(outerCell);
+    });
+
+
+    let backgroundCells = [];
+
+    viewportCells.forEach((cell) => {
+      let cellViewModel = cell.viewModel;
+      let cellRect = getCellRect(gridMeta, cellViewModel.col, cellViewModel.row);
+      let x = cellRect.x - gridMeta.x;
+      let y = cellRect.y - gridMeta.y;
+      let width = cellRect.width;
+      let height = cellRect.height;
+
+      let innerCell = React.createElement(cell.renderer, cellViewModel, []);
+
+      let outerCell = React.createElement('div', {
+        className: 'power-grid-cell',
+        style: {
+          transform: 'translate(' + x + 'px ,' +  y + 'px)',
+          width: width + 'px',
+          height: height + 'px'
+        }
+      }, [innerCell])
+
+      backgroundCells.push(outerCell);
+    });
+
+
+
+    let backgroundGrid = React.createElement('div', {
+      className: 'power-grid-background-grid',
+      style: {
+        width: viewModel.width + 'px',
+        height: viewModel.height + 'px',
+        position: 'absolute'
+      }
+    }, backgroundCells);
+
+    let shadowContent = React.createElement('div', {
+      className: 'power-grid-shadow-content',
+      style: {
+        width: gridMeta.shadowGridWidth + 'px',
+        height: gridMeta.shadowGridHeight + 'px',
+        position: 'absolute'
+      }
+    }, reactCells);
+
+    let sceneGrid = React.createElement('div', {
+      className: 'power-grid-scene-grid',
+      style: {
+        width: (viewModel.width) + 'px',
+        height: (viewModel.height) + 'px',
+        position: 'absolute'
+      }
+    }, shadowContent);
+
+    let children = [backgroundGrid, sceneGrid];
+
+    let grid = React.createElement('div', {
+      className: 'power-grid',
+      style: {
+        width: viewModel.width + 'px',
+        height: viewModel.height + 'px'
+      },
+      ref: this.myRef
+    }, children);
+
+    return grid;
+  }
 }
+
+
+
+
+module.exports = PowerGrid;
