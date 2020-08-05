@@ -4,13 +4,17 @@
   overflow: hidden;
   display: inline-block;
 
-  .power-grid-shadow-grid {
-    overflow: scroll;
+  .power-grid-background-grid {
+    position: absolute;
   }
 
   .power-grid-scene-grid {
     overflow: scroll;
-    //z-index: 999;
+    position: absolute;
+
+    .power-grid-shadow-content {
+      position: absolute;
+    }
   }
 
   .power-grid-cell {
@@ -19,6 +23,16 @@
     > div {
       width: 100%;
       height: 100%;
+    }
+  }
+
+  &.hide-scrollbars {
+    .power-grid-scene-grid {
+      -ms-overflow-style: none;  /* Internet Explorer 10+ */
+      scrollbar-width: none;  /* Firefox */
+      &::-webkit-scrollbar { 
+        display: none;  /* Safari and Chrome */
+      }
     }
   }
 }

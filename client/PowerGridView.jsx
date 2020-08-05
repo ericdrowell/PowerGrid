@@ -206,16 +206,13 @@ let getGridMeta = (viewModel) => {
   };
 };
 
-
 class PowerGrid extends React.Component {
   constructor() {
     super();
     this.myRef = React.createRef();
-
+    this.sceneGridRef = React.createRef();
     let that = this;
-
     let dirty = false;
-
 
     let update = () => {
       if (dirty) {
@@ -235,16 +232,29 @@ class PowerGrid extends React.Component {
         let sceneGridEl = evt.target.closest('.power-grid-scene-grid');
         viewModel.x = sceneGridEl.scrollLeft;
         viewModel.y = sceneGridEl.scrollTop;
+
+        if (that.props.onViewModelUpdate) {
+          that.props.onViewModelUpdate();
+        }
         dirty = true;
       }
     }, true); // scroll does not bubble, must listen on capture
 
     update();
-    
+  }
 
+  componentWillUpdate() {
+    let viewModel = this.props.viewModel;
+    let sceneGridEl = this.sceneGridRef.current;
+    sceneGridEl.scrollLeft = viewModel.x;
+    sceneGridEl.scrollTop = viewModel.y;
+  }
 
-
-
+  componentDidUpdate() {
+    let viewModel = this.props.viewModel;
+    let sceneGridEl = this.sceneGridRef.current;
+    sceneGridEl.scrollLeft = viewModel.x;
+    sceneGridEl.scrollTop = viewModel.y;
   }
 
   render() {
@@ -303,47 +313,18 @@ class PowerGrid extends React.Component {
       backgroundCells.push(outerCell);
     });
 
-
-
-    let backgroundGrid = React.createElement('div', {
-      className: 'power-grid-background-grid',
-      style: {
-        width: viewModel.width + 'px',
-        height: viewModel.height + 'px',
-        position: 'absolute'
-      }
-    }, backgroundCells);
-
-    let shadowContent = React.createElement('div', {
-      className: 'power-grid-shadow-content',
-      style: {
-        width: gridMeta.shadowGridWidth + 'px',
-        height: gridMeta.shadowGridHeight + 'px',
-        position: 'absolute'
-      }
-    }, reactCells);
-
-    let sceneGrid = React.createElement('div', {
-      className: 'power-grid-scene-grid',
-      style: {
-        width: (viewModel.width) + 'px',
-        height: (viewModel.height) + 'px',
-        position: 'absolute'
-      }
-    }, shadowContent);
-
-    let children = [backgroundGrid, sceneGrid];
-
-    let grid = React.createElement('div', {
-      className: 'power-grid',
-      style: {
-        width: viewModel.width + 'px',
-        height: viewModel.height + 'px'
-      },
-      ref: this.myRef
-    }, children);
-
-    return grid;
+    return(
+      <div className={'power-grid' + (viewModel.hideScrollbars ? ' hide-scrollbars' : '')} ref={this.myRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
+        <div className="power-grid-background-grid" style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
+          {backgroundCells}
+        </div>
+        <div className="power-grid-scene-grid" ref={this.sceneGridRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
+          <div className="power-grid-shadow-content" style={{width: gridMeta.shadowGridWidth + 'px',height: gridMeta.shadowGridHeight + 'px'}}>
+            {reactCells}
+          </div>
+        </div>
+      </div>
+    )
   }
 }
 

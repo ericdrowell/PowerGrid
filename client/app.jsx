@@ -61,9 +61,10 @@ for (let r=0; r<NUM_ROWS; r++) {
 
 
 
-
+let ROW_HEADER_WIDTH = 180;
 let rowHeadersViewModel = {
-  width: 600,
+  hideScrollbars: false,
+  width: ROW_HEADER_WIDTH,
   height: 400,
   x: 0,
   y: 0,
@@ -72,7 +73,7 @@ let rowHeadersViewModel = {
   cells: []
 };
 for (let c=0; c<1; c++) {
-  rowHeadersViewModel.colWidths[c] = CELL_WIDTH;
+  rowHeadersViewModel.colWidths[c] = ROW_HEADER_WIDTH;
 }
 for (let r=0; r<NUM_ROWS; r++) {
   rowHeadersViewModel.rowHeights[r] = CELL_HEIGHT;
@@ -91,19 +92,7 @@ for (let r=0; r<NUM_ROWS; r++) {
 }
 
 
-
-
-
-ReactDom.render(
-  <div className="fixed-cells-example">
-    <div className="row-headers">
-      <PowerGridView viewModel={rowHeadersViewModel} />
-    </div>
-    <div className="main-grid">
-      <PowerGridView viewModel={mainViewModel} />
-    </div>
-  </div>
-  , appContainer);
+ReactDom.render(<PowerGridView viewModel={mainViewModel}/>, appContainer);
 
 
 
