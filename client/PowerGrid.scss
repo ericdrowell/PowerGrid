@@ -6,11 +6,15 @@
 
   .power-grid-background-grid {
     position: absolute;
+    overflow: hidden;
+    
   }
 
   .power-grid-scene-grid {
     overflow: scroll;
     position: absolute;
+    overflow: scroll;
+
 
     .power-grid-shadow-content {
       position: absolute;

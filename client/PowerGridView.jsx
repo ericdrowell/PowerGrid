@@ -1,4 +1,5 @@
 const React = require('react');
+const SCROLLBAR_SIZE = 15;
 
 let getStarts = (sizes) => {
   let starts = [];
@@ -315,13 +316,13 @@ class PowerGrid extends React.Component {
 
     return(
       <div className={'power-grid' + (viewModel.hideScrollbars ? ' hide-scrollbars' : '')} ref={this.myRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
-        <div className="power-grid-background-grid" style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
-          {backgroundCells}
-        </div>
         <div className="power-grid-scene-grid" ref={this.sceneGridRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
           <div className="power-grid-shadow-content" style={{width: gridMeta.shadowGridWidth + 'px',height: gridMeta.shadowGridHeight + 'px'}}>
-            {reactCells}
+        
           </div>
+        </div>
+        <div className="power-grid-background-grid" style={{width: (viewModel.width-SCROLLBAR_SIZE) + 'px', height: (viewModel.height-SCROLLBAR_SIZE) + 'px'}}>
+          {backgroundCells}
         </div>
       </div>
     )
