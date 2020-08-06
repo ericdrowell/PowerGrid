@@ -241,6 +241,22 @@ class PowerGrid extends React.Component {
       }
     }, true); // scroll does not bubble, must listen on capture
 
+
+    document.addEventListener('wheel', (evt) => {
+      let powerGridEl = evt.target.closest('.power-grid');
+      
+      if (powerGridEl === that.myRef.current) {
+        let viewModel = that.props.viewModel;
+        viewModel.x += evt.deltaX;
+        viewModel.y += evt.deltaY;
+
+        if (that.props.onViewModelUpdate) {
+          that.props.onViewModelUpdate();
+        }
+        dirty = true;
+      }
+    }, true); // scroll does not bubble, must listen on capture
+
     update();
   }
 
