@@ -1,6 +1,6 @@
 const React = require('react');
 const ReactDom = require('react-dom');
-const PowerGridView = require('./PowerGridView.jsx');
+const PowerGrid = require('./PowerGrid.jsx');
 const TextCell = require('./cells/TextCell/TextCell.jsx');
 const NUM_COLS = 100;
 const NUM_ROWS = 4000;
@@ -153,15 +153,15 @@ let render = () => {
         <div className="left">
         </div>
         <div className="col-headers">
-          <PowerGridView viewModel={colHeadersViewModel}/>
+          <PowerGrid viewModel={colHeadersViewModel}/>
         </div>  
       </div>
       <div className="bottom">
         <div className="row-headers">
-          <PowerGridView viewModel={rowHeadersViewModel}/>
+          <PowerGrid viewModel={rowHeadersViewModel}/>
         </div>
         <div className="main-grid">
-          <PowerGridView viewModel={mainViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
+          <PowerGrid viewModel={mainViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
         </div>
       </div>
     </div>

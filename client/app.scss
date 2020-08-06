@@ -1,6 +1,10 @@
 @import './PowerGrid.scss';
 @import './cells/TextCell/TextCell.scss';
 
+html, body {
+  overscroll-behavior: none;
+}
+
 .example-grid {
   display: flex;
   flex-direction: column;

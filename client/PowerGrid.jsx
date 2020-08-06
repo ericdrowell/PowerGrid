@@ -250,6 +250,13 @@ class PowerGrid extends React.Component {
         viewModel.x += evt.deltaX;
         viewModel.y += evt.deltaY;
 
+        if (viewModel.x < 0) {
+          viewModel.x = 0;
+        }
+        if (viewModel.y < 0) {
+          viewModel.y = 0;
+        }
+
         if (that.props.onViewModelUpdate) {
           that.props.onViewModelUpdate();
         }
