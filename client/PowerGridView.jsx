@@ -265,31 +265,6 @@ class PowerGrid extends React.Component {
 
     let viewportCells = getViewportCells(viewModel, gridMeta);
 
-    let reactCells = [];
-
-    viewportCells.forEach((cell) => {
-      let cellViewModel = cell.viewModel;
-      let cellRect = getCellRect(gridMeta, cellViewModel.col, cellViewModel.row);
-      let x = cellRect.x;
-      let y = cellRect.y;
-      let width = cellRect.width;
-      let height = cellRect.height;
-
-      let innerCell = React.createElement(cell.renderer, cellViewModel, []);
-
-      let outerCell = React.createElement('div', {
-        className: 'power-grid-cell',
-        style: {
-          transform: 'translate(' + x + 'px ,' +  y + 'px)',
-          width: width + 'px',
-          height: height + 'px'
-        }
-      }, [innerCell])
-
-      reactCells.push(outerCell);
-    });
-
-
     let backgroundCells = [];
 
     viewportCells.forEach((cell) => {
@@ -300,7 +275,10 @@ class PowerGrid extends React.Component {
       let width = cellRect.width;
       let height = cellRect.height;
 
-      let innerCell = React.createElement(cell.renderer, cellViewModel, []);
+      let innerCell = React.createElement(cell.renderer, {
+        viewModel: cellViewModel,
+        onClick: props.onCellClick
+      }, []);
 
       let outerCell = React.createElement('div', {
         className: 'power-grid-cell',
@@ -314,6 +292,16 @@ class PowerGrid extends React.Component {
       backgroundCells.push(outerCell);
     });
 
+    let backgroundGridWidth = viewModel.width;
+    if (!viewModel.hideScrollbars) {
+      backgroundGridWidth -= SCROLLBAR_SIZE;
+    }
+
+    let backgroundGridHeight = viewModel.height;
+    if (!viewModel.hideScrollbars) {
+      backgroundGridHeight -= SCROLLBAR_SIZE;
+    }
+
     return(
       <div className={'power-grid' + (viewModel.hideScrollbars ? ' hide-scrollbars' : '')} ref={this.myRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
         <div className="power-grid-scene-grid" ref={this.sceneGridRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
@@ -321,7 +309,7 @@ class PowerGrid extends React.Component {
         
           </div>
         </div>
-        <div className="power-grid-background-grid" style={{width: (viewModel.width-SCROLLBAR_SIZE) + 'px', height: (viewModel.height-SCROLLBAR_SIZE) + 'px'}}>
+        <div className="power-grid-background-grid" style={{width: backgroundGridWidth + 'px', height: backgroundGridHeight + 'px'}}>
           {backgroundCells}
         </div>
       </div>

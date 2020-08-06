@@ -1,2 +1,18 @@
 @import './PowerGrid.scss';
 @import './cells/TextCell/TextCell.scss';
+
+.example-grid {
+  display: flex;
+  flex-direction: column;
+
+  .top {
+    display: flex;
+    
+    .left {
+      flex: 0 0 70px;
+    }
+  }
+  .bottom {
+    display: flex;
+  }
+}
