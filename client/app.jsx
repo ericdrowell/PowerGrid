@@ -61,6 +61,8 @@ for (let r=0; r<NUM_ROWS; r++) {
   }
 }
 
+console.log(mainViewModel);
+
 
 
 let ROW_HEADER_WIDTH = 70;
@@ -93,9 +95,6 @@ for (let r=0; r<NUM_ROWS; r++) {
   }
 }
 
-
-
-
 let COL_HEADER_HEIGHT = 30;
 let colHeadersViewModel = {
   hideScrollbars: true,
@@ -126,14 +125,11 @@ for (let r=0; r<1; r++) {
   }
 }
 
-
 let collapseRow = (row) => {
   mainViewModel.rowHeights[row] = 0;
   rowHeadersViewModel.rowHeights[row] = 0;
   render();
 };
-
-
 
 let onViewModelUpdate = () => {
   rowHeadersViewModel.y = mainViewModel.y;
@@ -145,6 +141,8 @@ let onCellClick = (evt) => {
   let row = evt.target.getAttribute('data-row');
   collapseRow(row);
 };
+
+
 
 let render = () => {
   ReactDom.render(

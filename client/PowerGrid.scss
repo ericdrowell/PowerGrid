@@ -3,18 +3,27 @@
   position: relative;
   overflow: hidden;
 
+  // remove table styles.  table html is only used for a11y
+  table, caption, tbody, tfoot, thead, tr, th, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+    border-spacing: 0;
+  }
 
   .power-grid-background-grid {
     position: absolute;
     overflow: hidden;
-    
   }
 
-  .power-grid-scene-grid {
+  .power-grid-shadow {
     overflow: scroll;
     position: absolute;
     overflow: scroll;
-
 
     .power-grid-shadow-content {
       position: absolute;
