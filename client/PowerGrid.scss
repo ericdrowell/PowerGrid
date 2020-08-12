@@ -15,11 +15,6 @@
     border-spacing: 0;
   }
 
-  .power-grid-background-grid {
-    position: absolute;
-    overflow: hidden;
-  }
-
   .power-grid-shadow {
     overflow: scroll;
     position: absolute;
@@ -30,12 +25,17 @@
     }
   }
 
-  .power-grid-cell {
+  .power-grid-viewport {
     position: absolute;
+    overflow: hidden;
 
-    > div {
-      width: 100%;
-      height: 100%;
+    .power-grid-cell {
+      position: absolute;
+
+      > div {
+        width: 100%;
+        height: 100%;
+      }
     }
   }
 

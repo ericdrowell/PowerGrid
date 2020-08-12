@@ -7,6 +7,10 @@ const NUM_ROWS = 4000;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
 const SCROLLBAR_SIZE = 14;
+const VIEWPORT_WIDTH = 1280;
+const VIEWPORT_HEIGHT = 550;
+// const VIEWPORT_WIDTH = 800;
+// const VIEWPORT_HEIGHT = 500;
 
 let appContainer = document.querySelector('#app');
 
@@ -33,14 +37,26 @@ let getRating = () => {
 
 
 let mainViewModel = {
-  width: 600,
-  height: 400,
+  maxCellsWhileScrolling: 200,
+  width: VIEWPORT_WIDTH,
+  height: VIEWPORT_HEIGHT,
   x: 0,
   y: 0,
   colWidths: [],
   rowHeights: [],
   cells: []
 };
+
+/*
+cell schema
+{
+  renderer
+  row
+  col
+  viewModel
+}
+
+*/
 for (let c=0; c<NUM_COLS; c++) {
   mainViewModel.colWidths[c] = CELL_WIDTH;
 }
@@ -51,11 +67,11 @@ for (let r=0; r<NUM_ROWS; r++) {
   for (let c=0; c<NUM_COLS; c++) {
     mainViewModel.cells.push({
       renderer: TextCell,
+      col: c,
+      row: r,
       viewModel: {
         value: c + ',' + r,
-        rating: getRating(),
-        col: c,
-        row: r
+        rating: getRating()
       }
     });
   }
@@ -69,7 +85,7 @@ let ROW_HEADER_WIDTH = 70;
 let rowHeadersViewModel = {
   hideScrollbars: true,
   width: ROW_HEADER_WIDTH,
-  height: 400-SCROLLBAR_SIZE,
+  height: VIEWPORT_HEIGHT-SCROLLBAR_SIZE,
   x: 0,
   y: 0,
   colWidths: [],
@@ -86,10 +102,10 @@ for (let r=0; r<NUM_ROWS; r++) {
   for (let c=0; c<1; c++) {
     rowHeadersViewModel.cells.push({
       renderer: TextCell,
+      col: c,
+      row: r,
       viewModel: {
-        value:'R' + r,
-        col: c,
-        row: r
+        value:'R' + r
       }
     });
   }
@@ -98,7 +114,7 @@ for (let r=0; r<NUM_ROWS; r++) {
 let COL_HEADER_HEIGHT = 30;
 let colHeadersViewModel = {
   hideScrollbars: true,
-  width: 600-SCROLLBAR_SIZE,
+  width: VIEWPORT_WIDTH-SCROLLBAR_SIZE,
   height: COL_HEADER_HEIGHT,
   x: 0,
   y: 0,
@@ -116,10 +132,10 @@ for (let r=0; r<1; r++) {
   for (let c=0; c<NUM_COLS; c++) {
     colHeadersViewModel.cells.push({
       renderer: TextCell,
+      col: c,
+      row: r,
       viewModel: {
-        value:'C' + c,
-        col: c,
-        row: r
+        value:'C' + c
       }
     });
   }

@@ -39,10 +39,10 @@ let getCellMeta = (viewModel, gridMeta, cell) => {
   let gridWidth = viewModel.width;
   let gridHeight = viewModel.height;
   let cellViewModel = cell.viewModel;
-  let x = gridMeta.colStarts[cellViewModel.col];
-  let y = gridMeta.rowStarts[cellViewModel.row];
-  let width = gridMeta.colWidths[cellViewModel.col];
-  let height = gridMeta.rowHeights[cellViewModel.row];
+  let x = gridMeta.colStarts[cell.col];
+  let y = gridMeta.rowStarts[cell.row];
+  let width = gridMeta.colWidths[cell.col];
+  let height = gridMeta.rowHeights[cell.row];
   let visible = x + width >= gridX && x <= gridX + gridWidth && y + height >= gridY && y - height <= gridY + gridHeight;
 
   return {
@@ -97,19 +97,17 @@ let getStartCell = (viewModel, gridMeta) => {
   return startCell;
 }
 
-let getViewportCells = (viewModel, gridMeta) => {
+let getViewportCells = (viewModel, gridMeta, maxCells) => {
   let viewportCells = [];
   let numCols = gridMeta.colWidths.length;
   let numRows = gridMeta.rowHeights.length;
   let startCell = getStartCell(viewModel, gridMeta);
-  let startCol = startCell.viewModel.col;
-  let startRow = startCell.viewModel.row;
+  let startCol = startCell.col;
+  let startRow = startCell.row;
   let minCol = startCol;
   let maxCol = startCol;
   let minRow = startRow;
   let maxRow = startRow;
-
-  viewportCells.push(startCell); 
 
   while (true) {
     minCol--;
@@ -167,16 +165,20 @@ let getViewportCells = (viewModel, gridMeta) => {
     }
   }
 
+  let cellCount = 0;
   for (let r=minRow; r<=maxRow; r++) {
     for (let c=minCol; c<=maxCol; c++) {
       let cellIndex = getCellIndex(c, r, numCols);
       let cell = viewModel.cells[cellIndex];
       
-      viewportCells.push(cell);
+      cellCount++;
+      if (cellCount <= maxCells) {
+        viewportCells.push(cell);
+      }
     }
   }
 
-  //console.log('rendering ' + viewportCells.length + '/' + viewModel.cells.length + ' cells');
+  console.log('rendering ' + viewportCells.length + '/' + viewModel.cells.length + ' cells');
 
   return viewportCells;
 };
@@ -208,9 +210,12 @@ class PowerGrid extends React.Component {
     super();
     this.mainGridRef = React.createRef();
     this.shadowGridRef = React.createRef();
+    this.scrolling = false;
     let that = this;
     let dirty = false;
+    
 
+    
     let update = () => {
       if (dirty) {
         that.forceUpdate();
@@ -221,8 +226,22 @@ class PowerGrid extends React.Component {
       });
     };
 
+    let scrollTimeout = null;
+    let setScrolling = () => {
+      that.scrolling = true;
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      scrollTimeout = setTimeout(() => {
+        that.scrolling = false;
+        dirty = true;
+      }, 100);
+    };
+
     document.addEventListener('scroll', (evt) => {
       let powerGridEl = evt.target.closest('.power-grid');
+
+      
       
       if (powerGridEl === that.mainGridRef.current) {
         let viewModel = that.props.viewModel;
@@ -233,6 +252,8 @@ class PowerGrid extends React.Component {
         if (that.props.onViewModelUpdate) {
           that.props.onViewModelUpdate();
         }
+
+        setScrolling();
         dirty = true;
       }
     }, true); // scroll does not bubble, must listen on capture
@@ -241,6 +262,8 @@ class PowerGrid extends React.Component {
     document.addEventListener('wheel', (evt) => {
       let powerGridEl = evt.target.closest('.power-grid');
       let that = this;
+
+      
       
       if (powerGridEl === that.mainGridRef.current) {
         let viewModel = that.props.viewModel;
@@ -269,6 +292,8 @@ class PowerGrid extends React.Component {
         if (that.props.onViewModelUpdate) {
           that.props.onViewModelUpdate();
         }
+
+        setScrolling();
         dirty = true;
       }
     }, true); // scroll does not bubble, must listen on capture
@@ -287,16 +312,13 @@ class PowerGrid extends React.Component {
     let props = this.props;
     let viewModel = props.viewModel;
     let gridMeta = getGridMeta(viewModel);
-
     this.cachedGridMeta = gridMeta;
+    let viewportCells = [];
+    let maxCells = viewModel.maxCellsWhileScrolling >= 0 && this.scrolling ? viewModel.maxCellsWhileScrolling : Number.POSITIVE_INFINITY;
 
-    let viewportCells = getViewportCells(viewModel, gridMeta);
-
-    let backgroundCells = [];
-
-    viewportCells.forEach((cell, i) => {
+    getViewportCells(viewModel, gridMeta, maxCells).forEach((cell, i) => {
       let cellViewModel = cell.viewModel;
-      let cellRect = getCellRect(gridMeta, cellViewModel.col, cellViewModel.row);
+      let cellRect = getCellRect(gridMeta, cell.col, cell.row);
       let x = cellRect.x - gridMeta.x;
       let y = cellRect.y - gridMeta.y;
       let width = cellRect.width;
@@ -318,17 +340,17 @@ class PowerGrid extends React.Component {
         }
       }, [innerCell])
 
-      backgroundCells.push(outerCell);
+      viewportCells.push(outerCell);
     });
 
-    let backgroundGridWidth = viewModel.width;
+    let viewportWidth = viewModel.width;
     if (!viewModel.hideScrollbars) {
-      backgroundGridWidth -= SCROLLBAR_SIZE;
+      viewportWidth -= SCROLLBAR_SIZE;
     }
 
-    let backgroundGridHeight = viewModel.height;
+    let viewportHeight = viewModel.height;
     if (!viewModel.hideScrollbars) {
-      backgroundGridHeight -= SCROLLBAR_SIZE;
+      viewportHeight -= SCROLLBAR_SIZE;
     }
 
     return(
@@ -337,8 +359,8 @@ class PowerGrid extends React.Component {
           <div className="power-grid-shadow-content" style={{width: gridMeta.innerWidth + 'px',height: gridMeta.innerHeight + 'px'}}>
           </div>
         </div>
-        <table className="power-grid-background-grid" style={{width: backgroundGridWidth + 'px', height: backgroundGridHeight + 'px'}}>
-          {backgroundCells}
+        <table className="power-grid-viewport" style={{width: viewportWidth + 'px', height: viewportHeight + 'px'}}>
+          {viewportCells}
         </table>
       </div>
     )
