@@ -24,28 +24,39 @@ let getCellIndex = (col, row, numCols) => {
   return (row * numCols) + col;
 };
 
-let getCellRect = (gridMeta, col, row) => {
-  return {
-    x: gridMeta.colStarts[col],
-    y: gridMeta.rowStarts[row],
-    width: gridMeta.colWidths[col],
-    height: gridMeta.rowHeights[row]
-  };
-};
-
 let getCellMeta = (viewModel, gridMeta, cell) => {
   let gridX = gridMeta.x;
   let gridY = gridMeta.y;
   let gridWidth = viewModel.width;
   let gridHeight = viewModel.height;
-  let cellViewModel = cell.viewModel;
   let x = gridMeta.colStarts[cell.col];
   let y = gridMeta.rowStarts[cell.row];
-  let width = gridMeta.colWidths[cell.col];
-  let height = gridMeta.rowHeights[cell.row];
+
+  let colSpanRemaining = cell.colSpan === undefined ? 1 : cell.colSpan;
+  let colSpanCol = cell.col;
+  let width = 0;
+  while (colSpanRemaining > 0) {
+    width += gridMeta.colWidths[colSpanCol];
+    colSpanCol++;
+    colSpanRemaining--;
+  }
+
+  let rowSpanRemaining = cell.rowSpan === undefined ? 1 : cell.rowSpan;
+  let rowSpanRow = cell.row;
+  let height = 0;
+  while (rowSpanRemaining > 0) {
+    height += gridMeta.rowHeights[rowSpanRow];
+    rowSpanRow++;
+    rowSpanRemaining--;
+  }
+
   let visible = x + width >= gridX && x <= gridX + gridWidth && y + height >= gridY && y - height <= gridY + gridHeight;
 
   return {
+    x: x,
+    y: y,
+    width: width,
+    height: height,
     visible: visible,
     // direction of cell relative to center of grid
     direction: {
@@ -318,29 +329,25 @@ class PowerGrid extends React.Component {
 
     getViewportCells(viewModel, gridMeta, maxCells).forEach((cell, i) => {
       let cellViewModel = cell.viewModel;
-      let cellRect = getCellRect(gridMeta, cell.col, cell.row);
-      let x = cellRect.x - gridMeta.x;
-      let y = cellRect.y - gridMeta.y;
-      let width = cellRect.width;
-      let height = cellRect.height;
+      let cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      let x = cellMeta.x - gridMeta.x;
+      let y = cellMeta.y - gridMeta.y;
+      let width = cellMeta.width;
+      let height = cellMeta.height;
 
-      let innerCell = React.createElement(cell.renderer, {
-        key: i + '-inner',
+      let reactCell = React.createElement(cell.renderer, {
+        key: i,
+        row: cell.row,
+        col: cell.col,
+        x: x,
+        y: y,
+        width: width,
+        height: height,
         viewModel: cellViewModel,
         onClick: props.onCellClick
       }, []);
 
-      let outerCell = React.createElement('td', {
-        key: i + '-outer',
-        className: 'power-grid-cell',
-        style: {
-          transform: 'translate(' + x + 'px ,' +  y + 'px)',
-          width: width + 'px',
-          height: height + 'px'
-        }
-      }, [innerCell])
-
-      viewportCells.push(outerCell);
+      viewportCells.push(reactCell);
     });
 
     let viewportWidth = viewModel.width;

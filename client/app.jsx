@@ -100,14 +100,21 @@ for (let r=0; r<NUM_ROWS; r++) {
 }
 for (let r=0; r<NUM_ROWS; r++) {
   for (let c=0; c<1; c++) {
-    rowHeadersViewModel.cells.push({
+    let cell = {
       renderer: TextCell,
       col: c,
       row: r,
       viewModel: {
         value:'R' + r
       }
-    });
+    };
+
+    if (r === 1) {
+      cell.rowSpan = 2;
+    }
+    if (r !== 2) {
+      rowHeadersViewModel.cells.push(cell);
+    }
   }
 }
 
@@ -129,15 +136,25 @@ for (let r=0; r<1; r++) {
   colHeadersViewModel.rowHeights[r] = COL_HEADER_HEIGHT;
 }
 for (let r=0; r<1; r++) {
-  for (let c=0; c<NUM_COLS; c++) {
-    colHeadersViewModel.cells.push({
+  for (let c=0; c<NUM_COLS; c++) { 
+    let cell = {
       renderer: TextCell,
       col: c,
       row: r,
       viewModel: {
         value:'C' + c
       }
-    });
+    };
+
+    if (c === 1) {
+      cell.colSpan = 2;
+    }
+
+    if (c !== 2) {
+      colHeadersViewModel.cells.push(cell);
+    }
+
+    
   }
 }
 

@@ -18,7 +18,6 @@
   .power-grid-shadow {
     overflow: scroll;
     position: absolute;
-    overflow: scroll;
 
     .power-grid-shadow-content {
       position: absolute;
@@ -31,16 +30,12 @@
 
     .power-grid-cell {
       position: absolute;
-
-      > div {
-        width: 100%;
-        height: 100%;
-      }
+      overflow: hidden;
     }
   }
 
   &.hide-scrollbars {
-    .power-grid-scene-grid {
+    .power-grid-shadow {
       -ms-overflow-style: none;  /* Internet Explorer 10+ */
       scrollbar-width: none;  /* Firefox */
       &::-webkit-scrollbar { 
