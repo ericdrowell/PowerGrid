@@ -2,15 +2,15 @@ const React = require('react');
 const ReactDom = require('react-dom');
 const PowerGrid = require('./PowerGrid.jsx');
 const TextCell = require('./cells/TextCell/TextCell.jsx');
-const NUM_COLS = 1000;
+const NUM_COLS = 100;
 const NUM_ROWS = 4000;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
 const SCROLLBAR_SIZE = 14;
-const VIEWPORT_WIDTH = 1280;
-const VIEWPORT_HEIGHT = 550;
-// const VIEWPORT_WIDTH = 800;
-// const VIEWPORT_HEIGHT = 500;
+// const VIEWPORT_WIDTH = 1280;
+// const VIEWPORT_HEIGHT = 550;
+const VIEWPORT_WIDTH = 800;
+const VIEWPORT_HEIGHT = 500;
 
 let appContainer = document.querySelector('#app');
 
@@ -29,15 +29,8 @@ let getRating = () => {
 };
 
 
-
-
-
-
-
-
-
 let mainViewModel = {
-  maxCellsWhileScrolling: 200,
+  //maxCellsWhileScrolling: 200,
   width: VIEWPORT_WIDTH,
   height: VIEWPORT_HEIGHT,
   x: 0,

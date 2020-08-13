@@ -204,8 +204,6 @@ class PowerGrid extends React.Component {
     let that = this;
     let dirty = false;
     
-
-    
     let update = () => {
       if (dirty) {
         that.forceUpdate();
