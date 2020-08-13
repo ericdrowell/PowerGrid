@@ -13,16 +13,16 @@ let getStarts = (sizes) => {
   return starts;
 }
 
-let getCellMeta = (viewModel, gridMeta, cell) => {
+let getCellMeta = (viewModel, gridMeta, cell, row, col) => {
   let gridX = gridMeta.x;
   let gridY = gridMeta.y;
   let gridWidth = viewModel.width;
   let gridHeight = viewModel.height;
-  let x = gridMeta.colStarts[cell.col];
-  let y = gridMeta.rowStarts[cell.row];
+  let x = gridMeta.colStarts[col];
+  let y = gridMeta.rowStarts[row];
 
   let colSpanRemaining = cell.colSpan === undefined ? 1 : cell.colSpan;
-  let colSpanCol = cell.col;
+  let colSpanCol = col;
   let width = 0;
   while (colSpanRemaining > 0) {
     width += gridMeta.colWidths[colSpanCol];
@@ -31,7 +31,7 @@ let getCellMeta = (viewModel, gridMeta, cell) => {
   }
 
   let rowSpanRemaining = cell.rowSpan === undefined ? 1 : cell.rowSpan;
-  let rowSpanRow = cell.row;
+  let rowSpanRow = row;
   let height = 0;
   while (rowSpanRemaining > 0) {
     height += gridMeta.rowHeights[rowSpanRow];
@@ -70,10 +70,13 @@ let getStartCell = (viewModel, gridMeta) => {
     startCell = viewModel.cells[row][col];
 
     if (startCell) {
-      let startCellMeta = getCellMeta(viewModel, gridMeta, startCell);
+      let startCellMeta = getCellMeta(viewModel, gridMeta, startCell, row, col);
 
       // if we find a visible cell, we have found the start cell!
       if (startCellMeta.visible) {
+        // warning: decorating view model in place
+        startCell.row = row;
+        startCell.col = col;
         break;
       }
 
@@ -128,7 +131,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
     let cell = viewModel.cells[startRow][minCol];
     if (cell) {
-      cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      cellMeta = getCellMeta(viewModel, gridMeta, cell, startRow, minCol);
       if (!cellMeta.visible) {
         break;
       }
@@ -143,7 +146,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
     let cell = viewModel.cells[startRow][maxCol];
     if (cell) {
-      cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      cellMeta = getCellMeta(viewModel, gridMeta, cell, startRow, maxCol);
       if (!cellMeta.visible) {
         break;
       }
@@ -158,7 +161,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
     let cell = viewModel.cells[minRow][startCol];
     if (cell) {
-      cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      cellMeta = getCellMeta(viewModel, gridMeta, cell, minRow, startCol);
       if (!cellMeta.visible) {
         break;
       }
@@ -173,7 +176,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
     let cell = viewModel.cells[maxRow][startCol];
     if (cell) {
-      cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      cellMeta = getCellMeta(viewModel, gridMeta, cell, maxRow, startCol);
       if (!cellMeta.visible) {
         break;
       }
@@ -187,6 +190,9 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       if (cellCount <= maxCells) {
         let cell = viewModel.cells[r][c];    
         if (cell) {
+          // warning, decorating original view model in place
+          cell.row = r;
+          cell.col = c;
           viewportCells.push(cell);
         }
       }
@@ -331,7 +337,7 @@ class PowerGrid extends React.Component {
     let reactViewportCells = [];
     viewportCells.forEach((cell, i) => {
       let cellViewModel = cell.viewModel;
-      let cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      let cellMeta = getCellMeta(viewModel, gridMeta, cell, cell.row, cell.col);
       let x = cellMeta.x - gridMeta.x;
       let y = cellMeta.y - gridMeta.y;
       let width = cellMeta.width;

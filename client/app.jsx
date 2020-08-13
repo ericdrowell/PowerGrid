@@ -61,8 +61,6 @@ for (let r=0; r<NUM_ROWS; r++) {
   for (let c=0; c<NUM_COLS; c++) {
     let cell = {
       renderer: TextCell,
-      row: r,
-      col: c,
       viewModel: {
         value: r + ',' + c,
         rating: getRating()
@@ -95,8 +93,6 @@ for (let r=0; r<NUM_ROWS; r++) {
   for (let c=0; c<1; c++) {
     let cell = {
       renderer: TextCell,
-      row: r,
-      col: c,
       viewModel: {
         value:'R' + r
       }
@@ -135,8 +131,6 @@ for (let r=0; r<1; r++) {
   for (let c=0; c<NUM_COLS; c++) { 
     let cell = {
       renderer: TextCell,
-      row: r,
-      col: c,
       viewModel: {
         value:'C' + c
       }
@@ -162,8 +156,10 @@ console.log('colHeadersViewModel:');
 console.log(colHeadersViewModel);
 
 let collapseRow = (row) => {
-  mainViewModel.rowHeights[row] = 0;
-  rowHeadersViewModel.rowHeights[row] = 0;
+  mainViewModel.cells.splice(row, 1);
+  mainViewModel.rowHeights.splice(row, 1);
+  rowHeadersViewModel.cells.splice(row, 1);
+  rowHeadersViewModel.rowHeights.splice(row, 1);
   render();
 };
 
