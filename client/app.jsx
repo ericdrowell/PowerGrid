@@ -2,7 +2,7 @@ const React = require('react');
 const ReactDom = require('react-dom');
 const PowerGrid = require('./PowerGrid.jsx');
 const TextCell = require('./cells/TextCell/TextCell.jsx');
-const NUM_COLS = 100;
+const NUM_COLS = 1000;
 const NUM_ROWS = 4000;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
@@ -64,22 +64,21 @@ for (let r=0; r<NUM_ROWS; r++) {
   mainViewModel.rowHeights[r] = CELL_HEIGHT;
 }
 for (let r=0; r<NUM_ROWS; r++) {
+  mainViewModel.cells[r] = [];
   for (let c=0; c<NUM_COLS; c++) {
-    mainViewModel.cells.push({
+    let cell = {
       renderer: TextCell,
-      col: c,
       row: r,
+      col: c,
       viewModel: {
         value: c + ',' + r,
         rating: getRating()
       }
-    });
+    };
+
+    mainViewModel.cells[r][c] = cell;
   }
 }
-
-console.log(mainViewModel);
-
-
 
 let ROW_HEADER_WIDTH = 70;
 let rowHeadersViewModel = {
@@ -99,11 +98,12 @@ for (let r=0; r<NUM_ROWS; r++) {
   rowHeadersViewModel.rowHeights[r] = CELL_HEIGHT;
 }
 for (let r=0; r<NUM_ROWS; r++) {
+  rowHeadersViewModel.cells[r] = [];
   for (let c=0; c<1; c++) {
     let cell = {
       renderer: TextCell,
-      col: c,
       row: r,
+      col: c,
       viewModel: {
         value:'R' + r
       }
@@ -112,9 +112,13 @@ for (let r=0; r<NUM_ROWS; r++) {
     if (r === 1) {
       cell.rowSpan = 2;
     }
-    if (r !== 2) {
-      rowHeadersViewModel.cells.push(cell);
+    
+    if (r === 2) {
+      cell.rowSpan = 0;
     }
+
+    rowHeadersViewModel.cells[r][c] = cell;
+    
   }
 }
 
@@ -136,11 +140,12 @@ for (let r=0; r<1; r++) {
   colHeadersViewModel.rowHeights[r] = COL_HEADER_HEIGHT;
 }
 for (let r=0; r<1; r++) {
+  colHeadersViewModel.cells[r] = [];
   for (let c=0; c<NUM_COLS; c++) { 
     let cell = {
       renderer: TextCell,
-      col: c,
       row: r,
+      col: c,
       viewModel: {
         value:'C' + c
       }
@@ -150,13 +155,22 @@ for (let r=0; r<1; r++) {
       cell.colSpan = 2;
     }
 
-    if (c !== 2) {
-      colHeadersViewModel.cells.push(cell);
+    if (c === 2) {
+      cell.colSpan = 0;
     }
 
+    colHeadersViewModel.cells[r][c] = cell;
     
   }
 }
+
+
+console.log('mainViewModel:');
+console.log(mainViewModel);
+console.log('rowHeadersViewModel:');
+console.log(rowHeadersViewModel);
+console.log('colHeadersViewModel:');
+console.log(colHeadersViewModel);
 
 let collapseRow = (row) => {
   mainViewModel.rowHeights[row] = 0;

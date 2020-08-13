@@ -13,17 +13,6 @@ let getStarts = (sizes) => {
   return starts;
 }
 
-let getCellIndex = (col, row, numCols) => {
-  // e.g. 3*5
-  // 0  1  2
-  // 3  4  5 
-  // 6  7  8
-  // 9  10 11
-  // 12 13 14
-
-  return (row * numCols) + col;
-};
-
 let getCellMeta = (viewModel, gridMeta, cell) => {
   let gridX = gridMeta.x;
   let gridY = gridMeta.y;
@@ -72,8 +61,7 @@ let getStartCell = (viewModel, gridMeta) => {
   let numRows = gridMeta.rowHeights.length;
   let col = Math.floor(numCols/2);
   let row = Math.floor(numRows/2);
-  let cellIndex = getCellIndex(col, row, numCols);
-  let startCell = viewModel.cells[cellIndex];
+  let startCell = viewModel.cells[row][col];
   let startCellMeta = getCellMeta(viewModel, gridMeta, startCell);
   let divider = 0.25;
   let bisectorCount = 0;
@@ -95,9 +83,7 @@ let getStartCell = (viewModel, gridMeta) => {
       row -= Math.floor(numRows*divider);
     }
 
-    cellIndex = getCellIndex(col, row, numCols);
-    
-    startCell = viewModel.cells[cellIndex];
+    startCell = viewModel.cells[row][col];
     startCellMeta = getCellMeta(viewModel, gridMeta, startCell);
     divider /= 2;
     bisectorCount++;
@@ -126,8 +112,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       minCol = 0;
       break;
     }
-    let cellIndex = getCellIndex(minCol, startRow, numCols);
-    let cell = viewModel.cells[cellIndex];
+    let cell = viewModel.cells[startRow][minCol];
     cellMeta = getCellMeta(viewModel, gridMeta, cell);
     if (!cellMeta.visible) {
       break;
@@ -140,8 +125,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       maxCol = numCols-1;
       break;
     }
-    let cellIndex = getCellIndex(maxCol, startRow, numCols);
-    let cell = viewModel.cells[cellIndex];
+    let cell = viewModel.cells[startRow][maxCol];
     cellMeta = getCellMeta(viewModel, gridMeta, cell);
     if (!cellMeta.visible) {
       break;
@@ -154,8 +138,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       minRow = 0;
       break;
     }
-    let cellIndex = getCellIndex(startCol, minRow, numCols);
-    let cell = viewModel.cells[cellIndex];
+    let cell = viewModel.cells[minRow][startCol];
     cellMeta = getCellMeta(viewModel, gridMeta, cell);
     if (!cellMeta.visible) {
       break;
@@ -168,8 +151,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       maxRow = numRows-1;
       break;
     }
-    let cellIndex = getCellIndex(startCol, maxRow, numCols);
-    let cell = viewModel.cells[cellIndex];
+    let cell = viewModel.cells[maxRow][startCol];
     cellMeta = getCellMeta(viewModel, gridMeta, cell);
     if (!cellMeta.visible) {
       break;
@@ -178,19 +160,16 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
 
   let cellCount = 0;
   for (let r=minRow; r<=maxRow; r++) {
-    for (let c=minCol; c<=maxCol; c++) {
-      let cellIndex = getCellIndex(c, r, numCols);
-      let cell = viewModel.cells[cellIndex];
-      
+    for (let c=minCol; c<=maxCol; c++) {      
       cellCount++;
       if (cellCount <= maxCells) {
+        let cell = viewModel.cells[r][c];    
         viewportCells.push(cell);
       }
     }
   }
 
-  console.log('rendering ' + viewportCells.length + '/' + viewModel.cells.length + ' cells');
-
+  console.log('rendering ' + viewportCells.length + ' cells');
   return viewportCells;
 };
 
@@ -324,10 +303,11 @@ class PowerGrid extends React.Component {
     let viewModel = props.viewModel;
     let gridMeta = getGridMeta(viewModel);
     this.cachedGridMeta = gridMeta;
-    let viewportCells = [];
     let maxCells = viewModel.maxCellsWhileScrolling >= 0 && this.scrolling ? viewModel.maxCellsWhileScrolling : Number.POSITIVE_INFINITY;
 
-    getViewportCells(viewModel, gridMeta, maxCells).forEach((cell, i) => {
+    let viewportCells = getViewportCells(viewModel, gridMeta, maxCells);
+    let reactViewportCells = [];
+    viewportCells.forEach((cell, i) => {
       let cellViewModel = cell.viewModel;
       let cellMeta = getCellMeta(viewModel, gridMeta, cell);
       let x = cellMeta.x - gridMeta.x;
@@ -347,7 +327,7 @@ class PowerGrid extends React.Component {
         onClick: props.onCellClick
       }, []);
 
-      viewportCells.push(reactCell);
+      reactViewportCells.push(reactCell);
     });
 
     let viewportWidth = viewModel.width;
@@ -367,7 +347,7 @@ class PowerGrid extends React.Component {
           </div>
         </div>
         <table className="power-grid-viewport" style={{width: viewportWidth + 'px', height: viewportHeight + 'px'}}>
-          {viewportCells}
+          {reactViewportCells}
         </table>
       </div>
     )
