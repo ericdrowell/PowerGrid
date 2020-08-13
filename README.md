@@ -105,13 +105,13 @@ let viewModel = {
 }
 ```
 
-## Simple Example
+## Simple App Example
 
 ```JSX
 <PowerGrid viewModel={viewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
 ```
 
-## Fixed Row Headers and Col Headers Example
+## Fixed Row Headers and Col Headers App Example
 
 ```JSX
   ReactDom.render(
