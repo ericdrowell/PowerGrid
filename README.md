@@ -2,7 +2,7 @@
 
 ## Features
 * blazing fast performance and massive scale (100M cells+) via virtualized viewport
-* react interface
+* React interface
 * completely customizable cells via JSX and CSS
 * cell interactivity
 * expand / collapse rows and columns
@@ -31,7 +31,7 @@ module.exports = (props) => {
 ## React Cell SCSS Example
 
 ```SCSS
-.power-grid-cell.power-grid-text-cell {
+.power-grid-cell.power-grid-my-cell {
   background-color: #eee;
 
   &.bad {
