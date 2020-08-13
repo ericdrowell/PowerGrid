@@ -105,8 +105,32 @@ let viewModel = {
 }
 ```
 
-## App JSX Example
+## Simple Example
 
 ```JSX
 <PowerGrid viewModel={viewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
+```
+
+## Fixed Row Headers and Col Headers Example
+
+```JSX
+  ReactDom.render(
+    <div className="example-grid">
+      <div className="top">
+        <div className="left">
+        </div>
+        <div className="col-headers">
+          <PowerGrid viewModel={colHeadersViewModel}/>
+        </div>  
+      </div>
+      <div className="bottom">
+        <div className="row-headers">
+          <PowerGrid viewModel={rowHeadersViewModel}/>
+        </div>
+        <div className="main-grid">
+          <PowerGrid viewModel={mainViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
+        </div>
+      </div>
+    </div>
+    , appContainer);
 ```
