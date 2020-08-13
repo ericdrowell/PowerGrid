@@ -67,6 +67,7 @@ let viewModel = {
   height: 100,
   colWidths: [100, 120],
   rowHeights: [80, 60],
+  // row based.  array of rows, and each row is an array of cells
   cells: [
     [
       {
