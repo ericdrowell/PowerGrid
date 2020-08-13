@@ -99,7 +99,7 @@ for (let r=0; r<NUM_ROWS; r++) {
     };
 
     if (r === 1) {
-      cell.rowSpan = 2;
+      cell.rowspan = 2;
     }
     
     if (r !== 2) {
@@ -137,7 +137,7 @@ for (let r=0; r<1; r++) {
     };
 
     if (c === 1) {
-      cell.colSpan = 2;
+      cell.colspan = 2;
     }
 
     if (c !== 2) {

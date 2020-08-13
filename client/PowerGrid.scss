@@ -15,6 +15,10 @@
     border-spacing: 0;
   }
 
+  tr {
+    position: absolute;
+  }
+
   .power-grid-shadow {
     overflow: scroll;
     position: absolute;

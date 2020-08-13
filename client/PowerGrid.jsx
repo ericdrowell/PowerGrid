@@ -21,22 +21,22 @@ let getCellMeta = (viewModel, gridMeta, cell, row, col) => {
   let x = gridMeta.colStarts[col];
   let y = gridMeta.rowStarts[row];
 
-  let colSpanRemaining = cell.colSpan === undefined ? 1 : cell.colSpan;
-  let colSpanCol = col;
+  let colspanRemaining = cell.colspan === undefined ? 1 : cell.colspan;
+  let colspanCol = col;
   let width = 0;
-  while (colSpanRemaining > 0) {
-    width += gridMeta.colWidths[colSpanCol];
-    colSpanCol++;
-    colSpanRemaining--;
+  while (colspanRemaining > 0) {
+    width += gridMeta.colWidths[colspanCol];
+    colspanCol++;
+    colspanRemaining--;
   }
 
-  let rowSpanRemaining = cell.rowSpan === undefined ? 1 : cell.rowSpan;
-  let rowSpanRow = row;
+  let rowspanRemaining = cell.rowspan === undefined ? 1 : cell.rowspan;
+  let rowspanRow = row;
   let height = 0;
-  while (rowSpanRemaining > 0) {
-    height += gridMeta.rowHeights[rowSpanRow];
-    rowSpanRow++;
-    rowSpanRemaining--;
+  while (rowspanRemaining > 0) {
+    height += gridMeta.rowHeights[rowspanRow];
+    rowspanRow++;
+    rowspanRemaining--;
   }
 
   let visible = x + width >= gridX && x <= gridX + gridWidth && y + height >= gridY && y - height <= gridY + gridHeight;
@@ -199,7 +199,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
   }
 
-  console.log('rendering ' + viewportCells.length + ' cells');
+  //console.log('rendering ' + viewportCells.length + ' cells');
   return viewportCells;
 };
 
@@ -335,6 +335,10 @@ class PowerGrid extends React.Component {
 
     let viewportCells = getViewportCells(viewModel, gridMeta, maxCells);
     let reactViewportCells = [];
+
+    let rowCells = [];
+    let currentRow = viewportCells[0].row;
+
     viewportCells.forEach((cell, i) => {
       let cellViewModel = cell.viewModel;
       let cellMeta = getCellMeta(viewModel, gridMeta, cell, cell.row, cell.col);
@@ -344,7 +348,7 @@ class PowerGrid extends React.Component {
       let height = cellMeta.height;
 
       let reactCell = React.createElement(cell.renderer, {
-        key: i,
+        key: cell.row + '-' + cell.col,
         row: cell.row,
         col: cell.col,
         x: x,
@@ -355,7 +359,25 @@ class PowerGrid extends React.Component {
         onClick: props.onCellClick
       }, []);
 
-      reactViewportCells.push(reactCell);
+      rowCells.push(reactCell);
+
+      let nextCell = viewportCells[i+1];
+
+      // create new row if the next cell is in a different row or on last cell
+      if (!nextCell || nextCell.row !== cell.row) {
+
+        let reactRow = React.createElement('tr', {
+          key: cell.row,
+          rowSpan: cell.rowspan || 1
+        }, rowCells);
+
+        reactViewportCells.push(reactRow);
+        currentRow = cell.row;
+        rowCells = [];
+      }
+
+      //reactViewportCells.push(reactCell);
+
     });
 
     let viewportWidth = viewModel.width;
@@ -375,7 +397,9 @@ class PowerGrid extends React.Component {
           </div>
         </div>
         <table className="power-grid-viewport" style={{width: viewportWidth + 'px', height: viewportHeight + 'px'}}>
-          {reactViewportCells}
+          <tbody>
+            {reactViewportCells}
+          </tbody>
         </table>
       </div>
     )
