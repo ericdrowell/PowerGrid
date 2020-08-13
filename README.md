@@ -15,7 +15,7 @@
 ## React Cell JSX Example
 
 
-``
+```
 const React = require('react');
 
 module.exports = (props) => {
@@ -26,11 +26,11 @@ module.exports = (props) => {
     </td>
   )
 }
-``
+```
 
 ## React Cell SCSS Example
 
-``
+```
 .power-grid-cell.power-grid-text-cell {
   background-color: #eee;
 
@@ -53,11 +53,11 @@ module.exports = (props) => {
     background-color: #b0d9fe;
   }
 }
-``
+```
 
 ## View Model Example 
 
-``
+```
 let viewModel = {
   hideScrollbars: false,
   x: 0,
@@ -101,10 +101,10 @@ let viewModel = {
     ]
   ]
 }
-``
+```
 
 ## App JSX Example
 
-``
+```
 <PowerGrid viewModel={mainViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
-``
+```
