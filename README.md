@@ -60,6 +60,7 @@ module.exports = (props) => {
 ```javascript
 let viewModel = {
   hideScrollbars: false,
+  maxCellsWhileScrolling: 1000,
   x: 0,
   y: 0,
   width: 200,
