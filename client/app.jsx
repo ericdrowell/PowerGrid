@@ -64,7 +64,7 @@ for (let r=0; r<NUM_ROWS; r++) {
       row: r,
       col: c,
       viewModel: {
-        value: c + ',' + r,
+        value: r + ',' + c,
         rating: getRating()
       }
     };
@@ -106,11 +106,9 @@ for (let r=0; r<NUM_ROWS; r++) {
       cell.rowSpan = 2;
     }
     
-    if (r === 2) {
-      cell.rowSpan = 0;
+    if (r !== 2) {
+      rowHeadersViewModel.cells[r][c] = cell;
     }
-
-    rowHeadersViewModel.cells[r][c] = cell;
     
   }
 }
@@ -148,11 +146,9 @@ for (let r=0; r<1; r++) {
       cell.colSpan = 2;
     }
 
-    if (c === 2) {
-      cell.colSpan = 0;
+    if (c !== 2) {
+      colHeadersViewModel.cells[r][c] = cell;
     }
-
-    colHeadersViewModel.cells[r][c] = cell;
     
   }
 }

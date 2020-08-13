@@ -55,36 +55,50 @@ let getCellMeta = (viewModel, gridMeta, cell) => {
   }
 };
 
+// quickly find a cell that is visible in the viewport
 let getStartCell = (viewModel, gridMeta) => {
   // find cell near center;
   let numCols = gridMeta.colWidths.length;
   let numRows = gridMeta.rowHeights.length;
   let col = Math.floor(numCols/2);
   let row = Math.floor(numRows/2);
-  let startCell = viewModel.cells[row][col];
-  let startCellMeta = getCellMeta(viewModel, gridMeta, startCell);
   let divider = 0.25;
   let bisectorCount = 0;
+  let startCell;
   
-  while (!startCellMeta.visible) {
-    let direction = startCellMeta.direction;
-
-    if (direction.x > 0) {
-      col += Math.floor(numCols*divider);
-    }
-    else if (direction.x < 0) {
-      col -= Math.floor(numCols*divider);
-    }
-
-    if (direction.y > 0) {
-      row += Math.floor(numRows*divider);
-    }
-    else if (direction.y < 0) {
-      row -= Math.floor(numRows*divider);
-    }
-
+  while (true) {
     startCell = viewModel.cells[row][col];
-    startCellMeta = getCellMeta(viewModel, gridMeta, startCell);
+
+    if (startCell) {
+      let startCellMeta = getCellMeta(viewModel, gridMeta, startCell);
+
+      // if we find a visible cell, we have found the start cell!
+      if (startCellMeta.visible) {
+        break;
+      }
+
+      let direction = startCellMeta.direction;
+
+      if (direction.x > 0) {
+        col += Math.floor(numCols*divider);
+      }
+      else if (direction.x < 0) {
+        col -= Math.floor(numCols*divider);
+      }
+
+      if (direction.y > 0) {
+        row += Math.floor(numRows*divider);
+      }
+      else if (direction.y < 0) {
+        row -= Math.floor(numRows*divider);
+      }
+    }
+    // if we landed at a row/col position where there is no cell, look for another adjacent cell
+    else {
+      row += 1;
+      col += 1;
+    }
+
     divider /= 2;
     bisectorCount++;
   }
@@ -113,9 +127,11 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       break;
     }
     let cell = viewModel.cells[startRow][minCol];
-    cellMeta = getCellMeta(viewModel, gridMeta, cell);
-    if (!cellMeta.visible) {
-      break;
+    if (cell) {
+      cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      if (!cellMeta.visible) {
+        break;
+      }
     }
   }
 
@@ -126,9 +142,11 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       break;
     }
     let cell = viewModel.cells[startRow][maxCol];
-    cellMeta = getCellMeta(viewModel, gridMeta, cell);
-    if (!cellMeta.visible) {
-      break;
+    if (cell) {
+      cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      if (!cellMeta.visible) {
+        break;
+      }
     }
   }
 
@@ -139,9 +157,11 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       break;
     }
     let cell = viewModel.cells[minRow][startCol];
-    cellMeta = getCellMeta(viewModel, gridMeta, cell);
-    if (!cellMeta.visible) {
-      break;
+    if (cell) {
+      cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      if (!cellMeta.visible) {
+        break;
+      }
     }
   }
 
@@ -152,9 +172,11 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       break;
     }
     let cell = viewModel.cells[maxRow][startCol];
-    cellMeta = getCellMeta(viewModel, gridMeta, cell);
-    if (!cellMeta.visible) {
-      break;
+    if (cell) {
+      cellMeta = getCellMeta(viewModel, gridMeta, cell);
+      if (!cellMeta.visible) {
+        break;
+      }
     }
   }
 
@@ -164,7 +186,9 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
       cellCount++;
       if (cellCount <= maxCells) {
         let cell = viewModel.cells[r][c];    
-        viewportCells.push(cell);
+        if (cell) {
+          viewportCells.push(cell);
+        }
       }
     }
   }
