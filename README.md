@@ -108,5 +108,5 @@ let viewModel = {
 ## App JSX Example
 
 ```JSX
-<PowerGrid viewModel={mainViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
+<PowerGrid viewModel={viewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
 ```
