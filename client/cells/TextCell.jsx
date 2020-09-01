@@ -5,25 +5,27 @@ const TextCell = (props) => {
   let viewModel = props.viewModel;
 
   let styles = css`
-    background-color: #eee;
+    && {
+      background-color: #eee;
 
-    &.bad {
-      background-color: #ffc7ce;
-      color: #9c0006;
-    }
+      &.bad {
+        background-color: #ffc7ce;
+        color: #9c0006;
+      }
 
-    &.neutral {
-      background-color: #ffeb9c;
-      color: #9c5700;
-    }
+      &.neutral {
+        background-color: #ffeb9c;
+        color: #9c5700;
+      }
 
-    &.good {
-      background-color: #c6efce;
-      color: #267c27;
-    }
+      &.good {
+        background-color: #c6efce;
+        color: #267c27;
+      }
 
-    &:hover {
-      background-color: #b0d9fe;
+      &:hover {
+        background-color: #b0d9fe;
+      }
     }
   `;
 
