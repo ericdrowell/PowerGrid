@@ -403,7 +403,6 @@ class PowerGrid extends React.Component {
         outline: 0;
         font-size: 100%;
         vertical-align: baseline;
-        background: transparent;
         border-spacing: 0;
       }
 
