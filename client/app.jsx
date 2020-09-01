@@ -1,7 +1,8 @@
-const React = require('react');
-const ReactDom = require('react-dom');
-const PowerGrid = require('./PowerGrid.jsx');
-const TextCell = require('./cells/TextCell/TextCell.jsx');
+import React from 'react';
+import ReactDom from 'react-dom';
+import PowerGrid from './PowerGrid.jsx';
+import TextCell from './cells/TextCell.jsx';
+
 const NUM_COLS = 100;
 const NUM_ROWS = 4000;
 const CELL_WIDTH = 75;

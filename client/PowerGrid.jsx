@@ -1,4 +1,6 @@
-const React = require('react');
+import React from 'react';
+import { css } from 'emotion';
+
 // TODO: this probably needs to change per browser.  Probably should auto calculate.
 const SCROLLBAR_SIZE = 15;
 
@@ -131,7 +133,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
     let cell = viewModel.cells[startRow][minCol];
     if (cell) {
-      cellMeta = getCellMeta(viewModel, gridMeta, cell, startRow, minCol);
+      let cellMeta = getCellMeta(viewModel, gridMeta, cell, startRow, minCol);
       if (!cellMeta.visible) {
         break;
       }
@@ -146,7 +148,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
     let cell = viewModel.cells[startRow][maxCol];
     if (cell) {
-      cellMeta = getCellMeta(viewModel, gridMeta, cell, startRow, maxCol);
+      let cellMeta = getCellMeta(viewModel, gridMeta, cell, startRow, maxCol);
       if (!cellMeta.visible) {
         break;
       }
@@ -161,7 +163,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
     let cell = viewModel.cells[minRow][startCol];
     if (cell) {
-      cellMeta = getCellMeta(viewModel, gridMeta, cell, minRow, startCol);
+      let cellMeta = getCellMeta(viewModel, gridMeta, cell, minRow, startCol);
       if (!cellMeta.visible) {
         break;
       }
@@ -176,7 +178,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
     }
     let cell = viewModel.cells[maxRow][startCol];
     if (cell) {
-      cellMeta = getCellMeta(viewModel, gridMeta, cell, maxRow, startCol);
+      let cellMeta = getCellMeta(viewModel, gridMeta, cell, maxRow, startCol);
       if (!cellMeta.visible) {
         break;
       }
@@ -390,8 +392,57 @@ class PowerGrid extends React.Component {
       viewportHeight -= SCROLLBAR_SIZE;
     }
 
+    let styles = css`
+      position: relative;
+      overflow: hidden;
+
+      table, caption, tbody, tfoot, thead, tr, th, td {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        font-size: 100%;
+        vertical-align: baseline;
+        background: transparent;
+        border-spacing: 0;
+      }
+
+      tr {
+        position: absolute;
+      }
+
+      .power-grid-shadow {
+        overflow: scroll;
+        position: absolute;
+
+        .power-grid-shadow-content {
+          position: absolute;
+        }
+      }
+
+      .power-grid-viewport {
+        position: absolute;
+        overflow: hidden;
+
+        .power-grid-cell {
+          position: absolute;
+          overflow: hidden;
+        }
+      }
+
+      &.hide-scrollbars {
+        .power-grid-shadow {
+          -ms-overflow-style: none;  /* Internet Explorer 10+ */
+          scrollbar-width: none;  /* Firefox */
+          &::-webkit-scrollbar { 
+            display: none;  /* Safari and Chrome */
+          }
+        }
+      }
+    `;
+
     return(
-      <div className={'power-grid' + (viewModel.hideScrollbars ? ' hide-scrollbars' : '')} ref={this.mainGridRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
+      <div className={'power-grid ' + (viewModel.hideScrollbars ? ' hide-scrollbars' : '') + ' ' + styles} ref={this.mainGridRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
         <div className="power-grid-shadow" ref={this.shadowGridRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
           <div className="power-grid-shadow-content" style={{width: gridMeta.innerWidth + 'px',height: gridMeta.innerHeight + 'px'}}>
           </div>
@@ -406,4 +457,4 @@ class PowerGrid extends React.Component {
   }
 }
 
-module.exports = PowerGrid;
+export default PowerGrid;
