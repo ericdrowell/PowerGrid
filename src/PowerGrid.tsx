@@ -1,11 +1,46 @@
 import React from 'react';
-import { css } from 'emotion';
+import { css } from '@emotion/core';
+import styled from '@emotion/styled';
+import { ViewModel } from './types';
 
 // TODO: this probably needs to change per browser.  Probably should auto calculate.
 const SCROLLBAR_SIZE = 15;
 
-let getStarts = (sizes) => {
-  let starts = [];
+const Container = styled.div<{ width: number; height: number; }>(({ width, height }) => ({
+  width: `${width}px`,
+  height: `${height}px`,
+  position: 'relative',
+  overflow: 'hidden',
+}));
+
+const ShadowGrid = styled.div<{ hideScrollbars?: boolean; }>({
+  width: '100%',
+  height: '100%',
+  overflow: 'scroll',
+  position: 'absolute',
+}, ({ hideScrollbars }) => hideScrollbars && ({
+  '-ms-overflow-style': 'none', /* Internet Explorer 10+ */
+  'scrollbar-width': 'none',    /* Firefox */
+  '&::-webkit-scrollbar': { 
+    display: 'none',  /* Safari and Chrome */
+  },
+}));
+
+const ShadowGridContent = styled.div<{ width: number; height: number; }>(({ width, height }) => ({
+  width: `${width}px`,
+  height: `${height}px`,
+  position: 'absolute',
+}));
+
+const GridViewport = styled.table<{ width: number; height: number; }>(({ width, height }) => ({
+  width: `${width}px`,
+  height: `${height}px`,
+  position: 'absolute',
+  overflow: 'hidden',
+}));
+
+let getStarts = (sizes: number[]): number[] => {
+  let starts: number[] = [];
   let start = 0;
   sizes.forEach((size, n) => {
     starts[n] = start;
@@ -227,12 +262,20 @@ let getGridMeta = (viewModel) => {
   };
 };
 
-class PowerGrid extends React.Component {
-  constructor() {
-    super();
-    this.mainGridRef = React.createRef();
-    this.shadowGridRef = React.createRef();
-    this.scrolling = false;
+export type PowerGridProps = {
+  viewModel: ViewModel<T>;
+  onCellClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  onViewModelUpdate?: () => void;
+};
+
+class PowerGrid<T> extends React.PureComponent<PowerGridProps> {
+  protected mainGridRef = React.createRef<HTMLDivElement>();
+  protected shadowGridRef = React.createRef<HTMLDivElement>();
+  protected scrolling = false;
+
+  constructor(props: PowerGridProps) {
+    super(props);
+
     let that = this;
     let dirty = false;
     
@@ -246,7 +289,7 @@ class PowerGrid extends React.Component {
       });
     };
 
-    let scrollTimeout = null;
+    let scrollTimeout: number;
     let setScrolling = () => {
       that.scrolling = true;
       if (scrollTimeout) {
@@ -358,7 +401,14 @@ class PowerGrid extends React.Component {
         width: width,
         height: height,
         viewModel: cellViewModel,
-        onClick: props.onCellClick
+        onClick: props.onCellClick,
+        style: {
+          transform: 'translate(' + x + 'px,' + y + 'px)',
+          width: (width - 2) + 'px',
+          height: height + 'px',
+          position: 'absolute',
+          overflow: 'hidden',
+        }
       }, []);
 
       rowCells.push(reactCell);
@@ -393,10 +443,7 @@ class PowerGrid extends React.Component {
     }
 
     let styles = css`
-      position: relative;
-      overflow: hidden;
-
-      table, caption, tbody, tfoot, thead, tr, th, td {
+      table, caption, tbody, tfoot, thead, tr, th {
         margin: 0;
         padding: 0;
         border: 0;
@@ -410,49 +457,19 @@ class PowerGrid extends React.Component {
       tr {
         position: absolute;
       }
-
-      .power-grid-shadow {
-        overflow: scroll;
-        position: absolute;
-
-        .power-grid-shadow-content {
-          position: absolute;
-        }
-      }
-
-      .power-grid-viewport {
-        position: absolute;
-        overflow: hidden;
-
-        .power-grid-cell {
-          position: absolute;
-          overflow: hidden;
-        }
-      }
-
-      &.hide-scrollbars {
-        .power-grid-shadow {
-          -ms-overflow-style: none;  /* Internet Explorer 10+ */
-          scrollbar-width: none;  /* Firefox */
-          &::-webkit-scrollbar { 
-            display: none;  /* Safari and Chrome */
-          }
-        }
-      }
     `;
 
     return(
-      <div className={'power-grid ' + (viewModel.hideScrollbars ? ' hide-scrollbars' : '') + ' ' + styles} ref={this.mainGridRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
-        <div className="power-grid-shadow" ref={this.shadowGridRef} style={{width: viewModel.width + 'px', height: viewModel.height + 'px'}}>
-          <div className="power-grid-shadow-content" style={{width: gridMeta.innerWidth + 'px',height: gridMeta.innerHeight + 'px'}}>
-          </div>
-        </div>
-        <table className="power-grid-viewport" style={{width: viewportWidth + 'px', height: viewportHeight + 'px'}}>
+      <Container css={styles} className="power-grid" ref={this.mainGridRef} width={viewModel.width} height={viewModel.height}>
+        <ShadowGrid className="power-grid-shadow" hideScrollbars={viewModel.hideScrollbars} ref={this.shadowGridRef}>
+          <ShadowGridContent width={gridMeta.innerWidth} height={gridMeta.innerHeight} />
+        </ShadowGrid>
+        <GridViewport className="power-grid-viewport" width={viewportWidth} height={viewportHeight}>
           <tbody>
             {reactViewportCells}
           </tbody>
-        </table>
-      </div>
+        </GridViewport>
+      </Container>
     )
   }
 }

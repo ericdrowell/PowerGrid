@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "outDir": "public/js",
+    "esModuleInterop": true,
+    "declaration": true,
+    "jsx": "react",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "target": "es5"
+  },
+  "include": ["./src/**/*", "./demo/**/*"],
+  "exclude": ["./src/**/*.spec.ts", "./src/**/*.spec.tsx", "node_modules"]
+}
