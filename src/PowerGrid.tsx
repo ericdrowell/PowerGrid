@@ -1,7 +1,31 @@
 import React from 'react';
 import { css } from '@emotion/core';
 import styled from '@emotion/styled';
-import { ViewModel } from './types';
+import { ViewModel, Cell } from './types';
+
+type CellMeta = {
+  x: number;
+  y: number;
+  width: number,
+  height: number,
+  visible: boolean;
+  // direction of cell relative to center of grid
+  direction: {
+    x: number;
+    y: number;
+  }
+};
+
+type GridMeta = {
+  x: number;
+  y: number;
+  colWidths: number[];
+  rowHeights: number[];
+  colStarts: number[];
+  rowStarts: number[];
+  innerWidth: number;
+  innerHeight: number;
+};
 
 // TODO: this probably needs to change per browser.  Probably should auto calculate.
 const SCROLLBAR_SIZE = 15;
@@ -11,6 +35,18 @@ const Container = styled.div<{ width: number; height: number; }>(({ width, heigh
   height: `${height}px`,
   position: 'relative',
   overflow: 'hidden',
+  'table, caption, tbody, tfoot, thead, tr, th, td': {
+    margin: 0,
+    padding: 0,
+    border: 0,
+    outline: 0,
+    fontSize: '100%',
+    verticalAlign: 'baseline',
+    borderSpacing: 0,
+  },
+  'tr': {
+    position: 'absolute',
+  },
 }));
 
 const ShadowGrid = styled.div<{ hideScrollbars?: boolean; }>({
@@ -39,7 +75,7 @@ const GridViewport = styled.table<{ width: number; height: number; }>(({ width, 
   overflow: 'hidden',
 }));
 
-let getStarts = (sizes: number[]): number[] => {
+const getStarts = (sizes: number[]): number[] => {
   let starts: number[] = [];
   let start = 0;
   sizes.forEach((size, n) => {
@@ -50,7 +86,7 @@ let getStarts = (sizes: number[]): number[] => {
   return starts;
 }
 
-let getCellMeta = (viewModel, gridMeta, cell, row, col) => {
+const getCellMeta = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta, cell: Cell<T>, row: number, col: number): CellMeta => {
   let gridX = gridMeta.x;
   let gridY = gridMeta.y;
   let gridWidth = viewModel.width;
@@ -93,7 +129,7 @@ let getCellMeta = (viewModel, gridMeta, cell, row, col) => {
 };
 
 // quickly find a cell that is visible in the viewport
-let getStartCell = (viewModel, gridMeta) => {
+const getStartCell = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta): Cell<T> => {
   // find cell near center;
   let numCols = gridMeta.colWidths.length;
   let numRows = gridMeta.rowHeights.length;
@@ -107,7 +143,7 @@ let getStartCell = (viewModel, gridMeta) => {
     startCell = viewModel.cells[row][col];
 
     if (startCell) {
-      let startCellMeta = getCellMeta(viewModel, gridMeta, startCell, row, col);
+      const startCellMeta = getCellMeta(viewModel, gridMeta, startCell, row, col);
 
       // if we find a visible cell, we have found the start cell!
       if (startCellMeta.visible) {
@@ -148,13 +184,13 @@ let getStartCell = (viewModel, gridMeta) => {
   return startCell;
 }
 
-let getViewportCells = (viewModel, gridMeta, maxCells) => {
+const getViewportCells = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta, maxCells: number): Cell<T>[] => {
   let viewportCells = [];
   let numCols = gridMeta.colWidths.length;
   let numRows = gridMeta.rowHeights.length;
   let startCell = getStartCell(viewModel, gridMeta);
-  let startCol = startCell.col;
-  let startRow = startCell.row;
+  let startCol = startCell.col!;
+  let startRow = startCell.row!;
   let minCol = startCol;
   let maxCol = startCol;
   let minRow = startRow;
@@ -240,7 +276,7 @@ let getViewportCells = (viewModel, gridMeta, maxCells) => {
   return viewportCells;
 };
 
-let getGridMeta = (viewModel) => {
+const getGridMeta = <T extends {}>(viewModel: ViewModel<T>): GridMeta => {
   let colWidths = viewModel.colWidths;
   let rowHeights = viewModel.rowHeights;
   let colStarts = getStarts(colWidths);
@@ -262,154 +298,68 @@ let getGridMeta = (viewModel) => {
   };
 };
 
-export type PowerGridProps = {
+export type PowerGridProps<T> = {
   viewModel: ViewModel<T>;
   onCellClick?: (event: React.MouseEvent<HTMLElement>) => void;
   onViewModelUpdate?: () => void;
 };
+class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
+  private cachedGridMeta: GridMeta;
 
-class PowerGrid<T> extends React.PureComponent<PowerGridProps> {
   protected mainGridRef = React.createRef<HTMLDivElement>();
   protected shadowGridRef = React.createRef<HTMLDivElement>();
-  protected scrolling = false;
-
-  constructor(props: PowerGridProps) {
-    super(props);
-
-    let that = this;
-    let dirty = false;
-    
-    let update = () => {
-      if (dirty) {
-        that.forceUpdate();
-        dirty = false;
-      }
-      requestAnimationFrame(() => {
-        update();
-      });
-    };
-
-    let scrollTimeout: number;
-    let setScrolling = () => {
-      that.scrolling = true;
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
-      scrollTimeout = setTimeout(() => {
-        that.scrolling = false;
-        dirty = true;
-      }, 100);
-    };
-
-    document.addEventListener('scroll', (evt) => {
-      let powerGridEl = evt.target.closest('.power-grid');
-
-      
-      
-      if (powerGridEl === that.mainGridRef.current) {
-        let viewModel = that.props.viewModel;
-        let shadowGridEl = evt.target.closest('.power-grid-shadow');
-        viewModel.x = shadowGridEl.scrollLeft;
-        viewModel.y = shadowGridEl.scrollTop;
-
-        if (that.props.onViewModelUpdate) {
-          that.props.onViewModelUpdate();
-        }
-
-        setScrolling();
-        dirty = true;
-      }
-    }, true); // scroll does not bubble, must listen on capture
-
-
-    document.addEventListener('wheel', (evt) => {
-      let powerGridEl = evt.target.closest('.power-grid');
-      let that = this;
-
-      
-      
-      if (powerGridEl === that.mainGridRef.current) {
-        let viewModel = that.props.viewModel;
-        let gridMeta = that.cachedGridMeta;
-        let minX = 0;
-        let minY = 0;
-        let maxX = gridMeta.innerWidth - viewModel.width + SCROLLBAR_SIZE;
-        let maxY = gridMeta.innerHeight - viewModel.height + SCROLLBAR_SIZE;
-        viewModel.x += evt.deltaX;
-        viewModel.y += evt.deltaY;
-
-        if (viewModel.x < minX) {
-          viewModel.x = minX;
-        }
-        else if (viewModel.x > maxX) {
-          viewModel.x = maxX;
-        }
-
-        if (viewModel.y < minY) {
-          viewModel.y = minY;
-        }
-        else if (viewModel.y > maxY) {
-          viewModel.y = maxY;
-        }
-
-        if (that.props.onViewModelUpdate) {
-          that.props.onViewModelUpdate();
-        }
-
-        setScrolling();
-        dirty = true;
-      }
-    }, true); // scroll does not bubble, must listen on capture
-
-    update();
+  protected isUpdating: boolean = false;
+  protected scrolling: boolean = false;
+  protected dirty: boolean = false;
+  protected scrollTimeout: number | undefined;
+  
+  componentDidMount(): void {
+    this.startUpdateLoop();
   }
 
-  componentDidUpdate() {
-    let viewModel = this.props.viewModel;
-    let shadowGridEl = this.shadowGridRef.current;
-    shadowGridEl.scrollLeft = viewModel.x;
-    shadowGridEl.scrollTop = viewModel.y;
-  }
-
-  render() {
+  render(): React.ReactNode {
     let props = this.props;
     let viewModel = props.viewModel;
-    let gridMeta = getGridMeta(viewModel);
+    const gridMeta: GridMeta = getGridMeta(viewModel);
     this.cachedGridMeta = gridMeta;
-    let maxCells = viewModel.maxCellsWhileScrolling >= 0 && this.scrolling ? viewModel.maxCellsWhileScrolling : Number.POSITIVE_INFINITY;
+    let maxCells = viewModel.maxCellsWhileScrolling && viewModel.maxCellsWhileScrolling >= 0 && this.scrolling ?
+      viewModel.maxCellsWhileScrolling :
+      Number.POSITIVE_INFINITY;
 
     let viewportCells = getViewportCells(viewModel, gridMeta, maxCells);
-    let reactViewportCells = [];
+    let reactViewportCells: React.ReactNode[] = [];
 
-    let rowCells = [];
+    let rowCells: React.ReactNode[] = [];
     let currentRow = viewportCells[0].row;
 
     viewportCells.forEach((cell, i) => {
-      let cellViewModel = cell.viewModel;
-      let cellMeta = getCellMeta(viewModel, gridMeta, cell, cell.row, cell.col);
+      let cellMeta = getCellMeta(viewModel, gridMeta, cell, cell.row!, cell.col!);
       let x = cellMeta.x - gridMeta.x;
       let y = cellMeta.y - gridMeta.y;
       let width = cellMeta.width;
       let height = cellMeta.height;
 
-      let reactCell = React.createElement(cell.renderer, {
-        key: cell.row + '-' + cell.col,
-        row: cell.row,
-        col: cell.col,
-        x: x,
-        y: y,
-        width: width,
-        height: height,
-        viewModel: cellViewModel,
-        onClick: props.onCellClick,
-        style: {
-          transform: 'translate(' + x + 'px,' + y + 'px)',
-          width: (width - 2) + 'px',
-          height: height + 'px',
-          position: 'absolute',
-          overflow: 'hidden',
-        }
-      }, []);
+      const Cell = cell.renderer;
+      const reactCell = (
+        <Cell
+          {...cell}
+          key={`${cell.row}-${cell.col}`}
+          col={cell.col!} // TODO
+          row={cell.row!} // TODO
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          onClick={props.onCellClick}
+          style={{
+            transform: 'translate(' + x + 'px,' + y + 'px)',
+            width: (width - 2) + 'px',
+            height: height + 'px',
+            position: 'absolute',
+            overflow: 'hidden',
+          }}
+        />
+      );
 
       rowCells.push(reactCell);
 
@@ -417,19 +367,11 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps> {
 
       // create new row if the next cell is in a different row or on last cell
       if (!nextCell || nextCell.row !== cell.row) {
-
-        let reactRow = React.createElement('tr', {
-          key: cell.row,
-          rowSpan: cell.rowspan || 1
-        }, rowCells);
-
+        const reactRow = <tr key={cell.row}>{rowCells}</tr>;
         reactViewportCells.push(reactRow);
         currentRow = cell.row;
         rowCells = [];
       }
-
-      //reactViewportCells.push(reactCell);
-
     });
 
     let viewportWidth = viewModel.width;
@@ -442,29 +384,18 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps> {
       viewportHeight -= SCROLLBAR_SIZE;
     }
 
-    let styles = css`
-      table, caption, tbody, tfoot, thead, tr, th {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        outline: 0;
-        font-size: 100%;
-        vertical-align: baseline;
-        background: transparent;
-        border-spacing: 0;
-      }
-
-      tr {
-        position: absolute;
-      }
-    `;
-
     return(
-      <Container css={styles} className="power-grid" ref={this.mainGridRef} width={viewModel.width} height={viewModel.height}>
-        <ShadowGrid className="power-grid-shadow" hideScrollbars={viewModel.hideScrollbars} ref={this.shadowGridRef}>
+      <Container
+        ref={this.mainGridRef}
+        width={viewModel.width}
+        height={viewModel.height}
+        onScroll={this.onScroll}
+        onWheel={this.onWheel}
+      >
+        <ShadowGrid hideScrollbars={viewModel.hideScrollbars} ref={this.shadowGridRef}>
           <ShadowGridContent width={gridMeta.innerWidth} height={gridMeta.innerHeight} />
         </ShadowGrid>
-        <GridViewport className="power-grid-viewport" width={viewportWidth} height={viewportHeight}>
+        <GridViewport width={viewportWidth} height={viewportHeight}>
           <tbody>
             {reactViewportCells}
           </tbody>
@@ -472,6 +403,98 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps> {
       </Container>
     )
   }
+  
+  componentDidUpdate(): void {
+    let viewModel = this.props.viewModel;
+    let shadowGridEl = this.shadowGridRef.current!;
+    shadowGridEl.scrollLeft = viewModel.x;
+    shadowGridEl.scrollTop = viewModel.y;
+  }
+  
+  componentWillUnmount(): void {
+    this.stopUpdateLoop();
+  }
+  
+  private readonly onScroll = (evt: React.UIEvent<HTMLDivElement>) => {
+    let viewModel = this.props.viewModel;
+    // @ts-ignore
+    let shadowGridEl = this.shadowGridRef.current!;
+    viewModel.x = shadowGridEl.scrollLeft;
+    viewModel.y = shadowGridEl.scrollTop;
+
+    if (this.props.onViewModelUpdate) {
+      this.props.onViewModelUpdate();
+    }
+
+    this.setScrolling();
+    this.dirty = true;
+  };
+  
+  private readonly onWheel = (evt: React.WheelEvent<HTMLDivElement>) => {
+    let viewModel = this.props.viewModel;
+    let gridMeta = this.cachedGridMeta;
+    let minX = 0;
+    let minY = 0;
+    let maxX = gridMeta.innerWidth - viewModel.width + SCROLLBAR_SIZE;
+    let maxY = gridMeta.innerHeight - viewModel.height + SCROLLBAR_SIZE;
+    viewModel.x += evt.deltaX;
+    viewModel.y += evt.deltaY;
+
+    if (viewModel.x < minX) {
+      viewModel.x = minX;
+    }
+    else if (viewModel.x > maxX) {
+      viewModel.x = maxX;
+    }
+
+    if (viewModel.y < minY) {
+      viewModel.y = minY;
+    }
+    else if (viewModel.y > maxY) {
+      viewModel.y = maxY;
+    }
+
+    if (this.props.onViewModelUpdate) {
+      this.props.onViewModelUpdate();
+    }
+
+    this.setScrolling();
+    this.dirty = true;
+  };
+  
+  private readonly startUpdateLoop = (): void => {
+    if (!this.isUpdating) {
+      this.isUpdating = true;
+      this.update();
+    }
+  };
+  
+  private readonly stopUpdateLoop = (): void => {
+    this.isUpdating = false;
+  };
+  
+  private readonly update = (): void => {
+    if (this.dirty) {
+      this.forceUpdate();
+      this.dirty = false;
+    }
+    if (this.isUpdating) {
+      requestAnimationFrame(() => {
+        this.update();
+      });
+    }
+  };
+  
+  private readonly setScrolling = (): void => {
+    this.scrolling = true;
+    if (this.scrollTimeout) {
+      clearTimeout(this.scrollTimeout);
+    }
+    this.scrollTimeout = setTimeout(() => {
+      this.scrolling = false;
+      this.dirty = true;
+    }, 100);
+  };
 }
 
 export default PowerGrid;

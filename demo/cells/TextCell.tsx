@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { CellProps } from '../../src/types';
-import { Rating } from '../types';
+import { Rating, DemoRatingCellViewModel } from '../types';
 
 const Cell = styled.td<{ rating: Rating }>(({ rating }) => {
   let backgroundColor = '#eee';
@@ -29,7 +29,7 @@ const Cell = styled.td<{ rating: Rating }>(({ rating }) => {
   };
 });
 
-const TextCell: React.FC<CellProps> = (props: CellProps) => {
+const TextCell: React.FC<CellProps<DemoRatingCellViewModel>> = (props: CellProps<DemoRatingCellViewModel>) => {
   const { viewModel, onClick, row, style } = props;
 
   return (
@@ -37,7 +37,7 @@ const TextCell: React.FC<CellProps> = (props: CellProps) => {
       rating={viewModel.rating}
       onClick={onClick}
       data-row={row}
-      style={style}
+      style={{ ...style, width: `${props.width - 2}px` }}
     >
       {viewModel.value}
     </Cell>
