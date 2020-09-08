@@ -1,18 +1,21 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "outDir": "public/js",
+    "outDir": "dist",
     "esModuleInterop": true,
     "declaration": true,
     "jsx": "react",
+    "lib": ["dom"],
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "strictNullChecks": true,
-    "target": "es5",
+    "moduleResolution": "node",
+    "module": "es6",
+    "target": "es2016",
     "noUnusedLocals": true,
     "allowUnreachableCode": false,
   },
-  "include": ["./src/**/*", "./demo/**/*"],
+  "include": ["./src/**/*"],
   "exclude": ["./src/**/*.spec.ts", "./src/**/*.spec.tsx", "node_modules"]
 }

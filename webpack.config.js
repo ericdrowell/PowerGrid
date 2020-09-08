@@ -1,11 +1,13 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
 module.exports = {
   mode: 'development',
   entry: {
     demo: './demo/index.tsx',
   },
   output: {
-    filename: '[name].js',
-    path: __dirname + '/public/js',
+    filename: 'js/[name].js',
+    path: __dirname + '/public',
   },
   devtool: 'source-map',
   target: 'web',
@@ -30,5 +32,10 @@ module.exports = {
   watchOptions: {
     aggregateTimeout: 300,
     poll: 1000,
-  }
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './demo/index.html'
+    }),
+  ]
 }

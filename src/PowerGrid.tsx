@@ -492,7 +492,7 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
   private readonly setScrolling = (): void => {
     this.scrolling = true;
     clearTimeout(this.scrollTimeout);
-    this.scrollTimeout = setTimeout(() => {
+    this.scrollTimeout = window.setTimeout(() => {
       this.scrolling = false;
       this.dirty = true;
     }, 100);
