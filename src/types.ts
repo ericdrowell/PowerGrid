@@ -3,16 +3,13 @@ export type Cell<T> = {
   viewModel: T;
   colspan?: number;
   rowspan?: number;
-  // TODO: these are added internally and are not optional in that context
-  col?: number;
-  row?: number;
 };
 
-export type ViewModel<T> = {
-  width: number;
-  height: number;
+export type GridViewModel<T> = {
   x: number;
   y: number;
+  width: number;
+  height: number;
   colWidths: number[];
   rowHeights: number[];
   cells: Cell<T>[][];
@@ -20,8 +17,7 @@ export type ViewModel<T> = {
   maxCellsWhileScrolling?: number;
 };
 
-export type CellProps<T> = {
-  viewModel: T;
+export type CellProps<T> = Omit<Cell<T>, 'renderer'> & {
   col: number;
   row: number;
   x: number;

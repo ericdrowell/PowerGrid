@@ -30,13 +30,15 @@ const Cell = styled.td<{ rating: Rating }>(({ rating }) => {
 });
 
 const TextCell: React.FC<CellProps<DemoRatingCellViewModel>> = (props: CellProps<DemoRatingCellViewModel>) => {
-  const { viewModel, onClick, row, style } = props;
+  const { colspan, onClick, row, rowspan, style, viewModel } = props;
 
   return (
     <Cell
       rating={viewModel.rating}
       onClick={onClick}
       data-row={row}
+      colSpan={colspan}
+      rowSpan={rowspan}
       style={{ ...style, width: `${props.width - 2}px` }}
     >
       {viewModel.value}

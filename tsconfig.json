@@ -9,7 +9,9 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "strictNullChecks": true,
-    "target": "es5"
+    "target": "es5",
+    "noUnusedLocals": true,
+    "allowUnreachableCode": false,
   },
   "include": ["./src/**/*", "./demo/**/*"],
   "exclude": ["./src/**/*.spec.ts", "./src/**/*.spec.tsx", "node_modules"]

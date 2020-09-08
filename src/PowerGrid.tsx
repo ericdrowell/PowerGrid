@@ -1,7 +1,6 @@
 import React from 'react';
-import { css } from '@emotion/core';
 import styled from '@emotion/styled';
-import { ViewModel, Cell } from './types';
+import { GridViewModel, Cell } from './types';
 
 type CellMeta = {
   x: number;
@@ -26,6 +25,11 @@ type GridMeta = {
   innerWidth: number;
   innerHeight: number;
 };
+
+type InternalCell<T> = Cell<T> & {
+  col?: number;
+  row?: number;
+}
 
 // TODO: this probably needs to change per browser.  Probably should auto calculate.
 const SCROLLBAR_SIZE = 15;
@@ -86,7 +90,7 @@ const getStarts = (sizes: number[]): number[] => {
   return starts;
 }
 
-const getCellMeta = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta, cell: Cell<T>, row: number, col: number): CellMeta => {
+const getCellMeta = <T extends {}>(viewModel: GridViewModel<T>, gridMeta: GridMeta, cell: Cell<T>, row: number, col: number): CellMeta => {
   let gridX = gridMeta.x;
   let gridY = gridMeta.y;
   let gridWidth = viewModel.width;
@@ -129,18 +133,17 @@ const getCellMeta = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta, 
 };
 
 // quickly find a cell that is visible in the viewport
-const getStartCell = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta): Cell<T> => {
+const getStartCell = <T extends {}>(viewModel: GridViewModel<T>, gridMeta: GridMeta): InternalCell<T> => {
   // find cell near center;
   let numCols = gridMeta.colWidths.length;
   let numRows = gridMeta.rowHeights.length;
   let col = Math.floor(numCols/2);
   let row = Math.floor(numRows/2);
   let divider = 0.25;
-  let bisectorCount = 0;
   let startCell;
   
   while (true) {
-    startCell = viewModel.cells[row][col];
+    startCell = viewModel.cells[row][col] as InternalCell<T>;
 
     if (startCell) {
       const startCellMeta = getCellMeta(viewModel, gridMeta, startCell, row, col);
@@ -176,7 +179,6 @@ const getStartCell = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta)
     }
 
     divider /= 2;
-    bisectorCount++;
   }
 
   //console.log('found visible cell in ' + bisectorCount + ' iterations');
@@ -184,7 +186,7 @@ const getStartCell = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta)
   return startCell;
 }
 
-const getViewportCells = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridMeta, maxCells: number): Cell<T>[] => {
+const getViewportCells = <T extends {}>(viewModel: GridViewModel<T>, gridMeta: GridMeta, maxCells: number): Cell<T>[] => {
   let viewportCells = [];
   let numCols = gridMeta.colWidths.length;
   let numRows = gridMeta.rowHeights.length;
@@ -261,7 +263,7 @@ const getViewportCells = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridM
     for (let c=minCol; c<=maxCol; c++) {      
       cellCount++;
       if (cellCount <= maxCells) {
-        let cell = viewModel.cells[r][c];    
+        let cell = viewModel.cells[r][c] as InternalCell<T>;    
         if (cell) {
           // warning, decorating original view model in place
           cell.row = r;
@@ -276,7 +278,7 @@ const getViewportCells = <T extends {}>(viewModel: ViewModel<T>, gridMeta: GridM
   return viewportCells;
 };
 
-const getGridMeta = <T extends {}>(viewModel: ViewModel<T>): GridMeta => {
+const getGridMeta = <T extends {}>(viewModel: GridViewModel<T>): GridMeta => {
   let colWidths = viewModel.colWidths;
   let rowHeights = viewModel.rowHeights;
   let colStarts = getStarts(colWidths);
@@ -299,10 +301,11 @@ const getGridMeta = <T extends {}>(viewModel: ViewModel<T>): GridMeta => {
 };
 
 export type PowerGridProps<T> = {
-  viewModel: ViewModel<T>;
+  viewModel: GridViewModel<T>;
   onCellClick?: (event: React.MouseEvent<HTMLElement>) => void;
   onViewModelUpdate?: () => void;
 };
+
 class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
   private cachedGridMeta: GridMeta;
 
@@ -330,9 +333,8 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
     let reactViewportCells: React.ReactNode[] = [];
 
     let rowCells: React.ReactNode[] = [];
-    let currentRow = viewportCells[0].row;
 
-    viewportCells.forEach((cell, i) => {
+    viewportCells.forEach((cell: InternalCell<T>, i) => {
       let cellMeta = getCellMeta(viewModel, gridMeta, cell, cell.row!, cell.col!);
       let x = cellMeta.x - gridMeta.x;
       let y = cellMeta.y - gridMeta.y;
@@ -346,6 +348,8 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
           key={`${cell.row}-${cell.col}`}
           col={cell.col!} // TODO
           row={cell.row!} // TODO
+          colspan={cell.colspan}
+          rowspan={cell.rowspan}
           x={x}
           y={y}
           width={width}
@@ -363,13 +367,12 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
 
       rowCells.push(reactCell);
 
-      let nextCell = viewportCells[i+1];
+      let nextCell = viewportCells[i+1] as InternalCell<T>;
 
       // create new row if the next cell is in a different row or on last cell
       if (!nextCell || nextCell.row !== cell.row) {
         const reactRow = <tr key={cell.row}>{rowCells}</tr>;
         reactViewportCells.push(reactRow);
-        currentRow = cell.row;
         rowCells = [];
       }
     });
@@ -405,14 +408,15 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
   }
   
   componentDidUpdate(): void {
-    let viewModel = this.props.viewModel;
-    let shadowGridEl = this.shadowGridRef.current!;
+    const viewModel = this.props.viewModel;
+    const shadowGridEl = this.shadowGridRef.current!;
     shadowGridEl.scrollLeft = viewModel.x;
     shadowGridEl.scrollTop = viewModel.y;
   }
   
   componentWillUnmount(): void {
     this.stopUpdateLoop();
+    clearTimeout(this.scrollTimeout);
   }
   
   private readonly onScroll = (evt: React.UIEvent<HTMLDivElement>) => {
@@ -487,9 +491,7 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
   
   private readonly setScrolling = (): void => {
     this.scrolling = true;
-    if (this.scrollTimeout) {
-      clearTimeout(this.scrollTimeout);
-    }
+    clearTimeout(this.scrollTimeout);
     this.scrollTimeout = setTimeout(() => {
       this.scrolling = false;
       this.dirty = true;

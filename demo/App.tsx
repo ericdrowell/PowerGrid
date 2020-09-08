@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import ReactDom from 'react-dom';
-import { css, Global } from '@emotion/core';
 import styled from '@emotion/styled';
 import PowerGrid from '../src/PowerGrid';
 import TextCell from './cells/TextCell';
-import { ViewModel, Cell } from '../src/types';
+import { GridViewModel, Cell } from '../src/types';
 import { Rating, DemoCellViewModel, DemoRatingCellViewModel } from './types';
 
 const NUM_COLS = 100;
@@ -32,11 +30,11 @@ const getRating = (): Rating => {
 };
 
 const generateData = (): {
-  colHeadersViewModel: ViewModel<DemoCellViewModel>;
-  rowHeadersViewModel: ViewModel<DemoCellViewModel>;
-  mainViewModel: ViewModel<DemoRatingCellViewModel>;
+  colHeadersViewModel: GridViewModel<DemoCellViewModel>;
+  rowHeadersViewModel: GridViewModel<DemoCellViewModel>;
+  mainViewModel: GridViewModel<DemoRatingCellViewModel>;
 } => {
-  const mainViewModel: ViewModel<DemoRatingCellViewModel> = {
+  const mainViewModel: GridViewModel<DemoRatingCellViewModel> = {
     //maxCellsWhileScrolling: 200,
     width: VIEWPORT_WIDTH,
     height: VIEWPORT_HEIGHT,
@@ -78,7 +76,7 @@ const generateData = (): {
     }
   }
 
-  const rowHeadersViewModel: ViewModel<DemoCellViewModel> = {
+  const rowHeadersViewModel: GridViewModel<DemoCellViewModel> = {
     hideScrollbars: true,
     width: ROW_HEADER_WIDTH,
     height: VIEWPORT_HEIGHT - SCROLLBAR_SIZE,
@@ -115,7 +113,7 @@ const generateData = (): {
     }
   }
 
-  const colHeadersViewModel: ViewModel<DemoCellViewModel> = {
+  const colHeadersViewModel: GridViewModel<DemoCellViewModel> = {
     hideScrollbars: true,
     width: VIEWPORT_WIDTH - SCROLLBAR_SIZE,
     height: COL_HEADER_HEIGHT,
@@ -180,33 +178,36 @@ const Left = styled.div({
 });
 
 const App: React.FC = () => {
-  const [columnViewModel, setColumnViewModel] = useState(colHeadersViewModel);
-  const [rowViewModel, setRowViewModel] = useState(rowHeadersViewModel);
+  const [headerViewModels, setHeaderViewModels] = useState({ col: colHeadersViewModel, row: rowHeadersViewModel });
   const [bodyViewModel, setBodyViewModel] = useState(mainViewModel);
   
   const onViewModelUpdate = () => {
-    colHeadersViewModel.x = mainViewModel.x;
-    setRowViewModel({
-      ...rowViewModel,
-      y: bodyViewModel.y,
-    });
-    setColumnViewModel({
-      ...columnViewModel,
-      x: bodyViewModel.x,
+    setHeaderViewModels({
+      col: {
+        ...headerViewModels.col,
+        x: bodyViewModel.x,
+      },
+      row: {
+        ...headerViewModels.row,
+        y: bodyViewModel.y,
+      }
     });
   }
   
   const collapseRow = (row: number) => {   
     setBodyViewModel({
       ...bodyViewModel,
-      cells: [ ...bodyViewModel.cells.slice(0, row), ...bodyViewModel.cells.slice(row + 1) ],
-      rowHeights: [ ...bodyViewModel.rowHeights.slice(0, row), ...bodyViewModel.rowHeights.slice(row + 1) ]
+      cells: [...bodyViewModel.cells.slice(0, row), ...bodyViewModel.cells.slice(row + 1)],
+      rowHeights: [...bodyViewModel.rowHeights.slice(0, row), ...bodyViewModel.rowHeights.slice(row + 1)],
     });
     
-    setRowViewModel({
-      ...rowViewModel,
-      cells: [ ...rowViewModel.cells.slice(0, row), ...rowViewModel.cells.slice(row + 1) ],
-      rowHeights: [ ...rowViewModel.rowHeights.slice(0, row), ...rowViewModel.rowHeights.slice(row + 1) ]
+    setHeaderViewModels({
+      ...headerViewModels,
+      row: {
+        ...headerViewModels.row,
+        cells: [...headerViewModels.row.cells.slice(0, row), ...headerViewModels.row.cells.slice(row + 1)],
+        rowHeights: [...headerViewModels.row.rowHeights.slice(0, row), ...headerViewModels.row.rowHeights.slice(row + 1)],
+      },
     });
   };
   
@@ -219,10 +220,10 @@ const App: React.FC = () => {
     <ExampleGrid>
       <Flex>
         <Left />
-        <PowerGrid<DemoCellViewModel> viewModel={columnViewModel} />
+        <PowerGrid<DemoCellViewModel> viewModel={headerViewModels.col} />
       </Flex>
       <Flex>
-        <PowerGrid<DemoCellViewModel> viewModel={rowViewModel} />
+        <PowerGrid<DemoCellViewModel> viewModel={headerViewModels.row} />
         <PowerGrid<DemoRatingCellViewModel> viewModel={bodyViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick} />
       </Flex>
     </ExampleGrid>
