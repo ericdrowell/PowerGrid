@@ -27,8 +27,8 @@ type GridMeta = {
 };
 
 type InternalCell<T> = Cell<T> & {
-  col?: number;
-  row?: number;
+  col: number;
+  row: number;
 }
 
 // TODO: this probably needs to change per browser.  Probably should auto calculate.
@@ -304,9 +304,14 @@ export type PowerGridProps<T> = {
   viewModel: GridViewModel<T>;
   onCellClick?: (event: React.MouseEvent<HTMLElement>) => void;
   onViewModelUpdate?: () => void;
+  role?: 'grid' | 'treegrid',
 };
 
 class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
+  static defaultProps: Partial<PowerGridProps<{}>> = {
+    role: 'grid',
+  };
+
   private cachedGridMeta: GridMeta;
 
   protected mainGridRef = React.createRef<HTMLDivElement>();
@@ -346,8 +351,8 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
         <Cell
           {...cell}
           key={`${cell.row}-${cell.col}`}
-          col={cell.col!} // TODO
-          row={cell.row!} // TODO
+          col={cell.col}
+          row={cell.row}
           colspan={cell.colspan}
           rowspan={cell.rowspan}
           x={x}
@@ -371,7 +376,7 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
 
       // create new row if the next cell is in a different row or on last cell
       if (!nextCell || nextCell.row !== cell.row) {
-        const reactRow = <tr key={cell.row}>{rowCells}</tr>;
+        const reactRow = <tr role="row" aria-rowindex={cell.row + 1} key={cell.row}>{rowCells}</tr>;
         reactViewportCells.push(reactRow);
         rowCells = [];
       }
@@ -398,8 +403,14 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
         <ShadowGrid hideScrollbars={viewModel.hideScrollbars} ref={this.shadowGridRef}>
           <ShadowGridContent width={gridMeta.innerWidth} height={gridMeta.innerHeight} />
         </ShadowGrid>
-        <GridViewport width={viewportWidth} height={viewportHeight}>
-          <tbody>
+        <GridViewport
+          aria-colcount={gridMeta.colWidths.length}
+          aria-rowcount={gridMeta.rowHeights.length}
+          role={props.role}
+          width={viewportWidth}
+          height={viewportHeight}
+        >
+          <tbody role="rowgroup">
             {reactViewportCells}
           </tbody>
         </GridViewport>

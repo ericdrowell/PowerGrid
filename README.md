@@ -17,12 +17,12 @@
 
 ```JSX
 import React from 'react';
-import { css } from 'emotion';
+import { css } from '@emotion/core';
 
-const TextCell = (props) => {
-  let viewModel = props.viewModel;
+const MyCell = (props) => {
+  const { onClick, row, style, viewModel, width } = props;
 
-  let styles = css`
+  const styles = css`
     && {
       background-color: #eee;
 
@@ -48,13 +48,13 @@ const TextCell = (props) => {
   `;
 
   return (
-    <td className={'power-grid-cell ' + viewModel.rating + ' ' + styles} onClick={props.onClick} data-row={props.row} style={{transform: 'translate(' + props.x + 'px,' + props.y + 'px)', width: (props.width-2)+'px', height: props.height+'px'}}>
+    <td className={viewModel.rating} css={styles} onClick={onClick} data-row={row} style={{...style , width: `${(width - 2)}px`}}>
       {viewModel.value}
     </td>
   )
 };
 
-export default TextCell;
+export default MyCell;
 ```
 
 ## View Model Example 
@@ -112,4 +112,3 @@ let viewModel = {
 ```JSX
 <PowerGrid viewModel={viewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
 ```
-
