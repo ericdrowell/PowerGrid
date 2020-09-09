@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
+import CssReset from '../src/CssReset';
 import PowerGrid from '../src/PowerGrid';
 import TextCell from './cells/TextCell';
 import { GridViewModel, Cell } from '../src/types';
@@ -217,16 +218,19 @@ const App: React.FC = () => {
   };
 
   return (
-    <ExampleGrid>
-      <Flex>
-        <Left />
-        <PowerGrid<DemoCellViewModel> viewModel={headerViewModels.col} />
-      </Flex>
-      <Flex>
-        <PowerGrid<DemoCellViewModel> viewModel={headerViewModels.row} />
-        <PowerGrid<DemoRatingCellViewModel> viewModel={bodyViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick} />
-      </Flex>
-    </ExampleGrid>
+    <>
+      <CssReset />
+      <ExampleGrid>
+        <Flex>
+          <Left />
+          <PowerGrid<DemoCellViewModel> viewModel={headerViewModels.col} />
+        </Flex>
+        <Flex>
+          <PowerGrid<DemoCellViewModel> viewModel={headerViewModels.row} />
+          <PowerGrid<DemoRatingCellViewModel> viewModel={bodyViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick} />
+        </Flex>
+      </ExampleGrid>
+    </>
   );
 };
 

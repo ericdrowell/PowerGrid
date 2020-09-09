@@ -39,18 +39,6 @@ const Container = styled.div<{ width: number; height: number; }>(({ width, heigh
   height: `${height}px`,
   position: 'relative',
   overflow: 'hidden',
-  'table, caption, tbody, tfoot, thead, tr, th, td': {
-    margin: 0,
-    padding: 0,
-    border: 0,
-    outline: 0,
-    fontSize: '100%',
-    verticalAlign: 'baseline',
-    borderSpacing: 0,
-  },
-  'tr': {
-    position: 'absolute',
-  },
 }));
 
 const ShadowGrid = styled.div<{ hideScrollbars?: boolean; }>({
@@ -78,6 +66,10 @@ const GridViewport = styled.table<{ width: number; height: number; }>(({ width, 
   position: 'absolute',
   overflow: 'hidden',
 }));
+
+const GridRow = styled.tr({
+  position: 'absolute',
+});
 
 const getStarts = (sizes: number[]): number[] => {
   let starts: number[] = [];
@@ -376,7 +368,7 @@ class PowerGrid<T> extends React.PureComponent<PowerGridProps<T>> {
 
       // create new row if the next cell is in a different row or on last cell
       if (!nextCell || nextCell.row !== cell.row) {
-        const reactRow = <tr role="row" aria-rowindex={cell.row + 1} key={cell.row}>{rowCells}</tr>;
+        const reactRow = <GridRow role="row" aria-rowindex={cell.row + 1} key={cell.row}>{rowCells}</GridRow>;
         reactViewportCells.push(reactRow);
         rowCells = [];
       }
