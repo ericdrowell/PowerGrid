@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { CellProps } from '../../src/types';
 import { Rating, DemoRatingCellViewModel } from '../types';
 
-const Cell = styled.td<{ rating: Rating }>(({ rating }) => {
+const Cell = styled.td<{ rating: Rating; }>(({ rating }) => {
   let backgroundColor = '#eee';
   let color = '#333';
   switch (rating) {

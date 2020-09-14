@@ -3,7 +3,7 @@
 ## Features
 * blazing fast performance and massive scale (100M cells+) via virtualized viewport
 * React interface
-* completely customizable cells via JSX and CSS
+* completely customizable cells via TSX (JSX) and CSS
 * cell interactivity
 * expand / collapse rows and columns
 * merged cells support (colspans and rowspans)
@@ -12,45 +12,51 @@
 * any number of fixed rows and headers
 * screen reader accessible via semantic table html
 
-## React Cell JSX Example (MyCell)
+## React Cell TSX Example (MyCell)
 
-
-```JSX
+```TSX
 import React from 'react';
-import { css } from '@emotion/core';
+import styled from '@emotion/styled';
+import { CellProps } from 'power-grid';
 
-const MyCell = (props) => {
+export type MyCellProps = CellProps<{
+  rating: string;
+  value: number;
+}>;
+
+const Cell = styled.td<{ rating: string; }>(({ rating }) => {
+  let backgroundColor = '#eee';
+  let color = '#333';
+  switch (rating) {
+    case 'bad':
+      backgroundColor = '#ffc7ce';
+      color = '#9c0006';
+      break;
+    case 'neutral':
+      backgroundColor = '#ffeb9c';
+      color = '#9c5700';
+      break;
+    case 'good':
+      backgroundColor = '#c6efce';
+      color = '#267c27';
+      break;
+  }
+  return {
+    backgroundColor,
+    color,
+    '&:hover': {
+      backgroundColor: '#b0d9fe',
+    },
+  };
+});
+
+const MyCell: React.FC<MyCellProps> = (props: MyCellProps) => {
   const { onClick, row, style, viewModel, width } = props;
 
-  const styles = css`
-    && {
-      background-color: #eee;
-
-      &.bad {
-        background-color: #ffc7ce;
-        color: #9c0006;
-      }
-
-      &.neutral {
-        background-color: #ffeb9c;
-        color: #9c5700;
-      }
-
-      &.good {
-        background-color: #c6efce;
-        color: #267c27;
-      }
-
-      &:hover {
-        background-color: #b0d9fe;
-      }
-    }
-  `;
-
   return (
-    <td className={viewModel.rating} css={styles} onClick={onClick} data-row={row} style={{...style , width: `${(width - 2)}px`}}>
+    <Cell rating={viewModel.rating} onClick={onClick} data-row={row} style={{...style , width: `${(width - 2)}px`}}>
       {viewModel.value}
-    </td>
+    </Cell>
   )
 };
 
