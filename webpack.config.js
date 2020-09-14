@@ -29,6 +29,9 @@ module.exports = {
       },
     ],
   },
+  devServer: {
+    contentBase: __dirname + '/public',
+  },
   watchOptions: {
     aggregateTimeout: 300,
     poll: 1000,

@@ -22,7 +22,8 @@
     "html-webpack-plugin": "^4.4.1",
     "typescript": "^4.0.2",
     "webpack": "^4.35.0",
-    "webpack-cli": "^3.3.5"
+    "webpack-cli": "^3.3.5",
+    "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
     "@emotion/core": "^10.0.35",
@@ -31,7 +32,7 @@
     "react-dom": "^16.8.6"
   },
   "scripts": {
-    "start": "npm install && npm run build:demo",
+    "start": "npm run clean && webpack-dev-server --open",
     "build": "tsc && tsc --outDir ./dist/cjs --module CommonJS",
     "build:demo": "npm run clean && webpack",
     "build:demo:watch": "npm run build:demo -- --watch",
