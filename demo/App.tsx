@@ -3,11 +3,12 @@ import styled from '@emotion/styled';
 import CssReset from '../src/CssReset';
 import PowerGrid from '../src/PowerGrid';
 import TextCell from './cells/TextCell';
-import { GridViewModel, Cell } from '../src/types';
-import { Rating, DemoCellViewModel, DemoRatingCellViewModel } from './types';
+import { CellViewModel, GridViewModel, Cell } from '../src/types';
+import { Rating, DemoRatingCellViewModel } from './types';
 
 const NUM_COLS = 100;
 const NUM_ROWS = 4000;
+const NUM_COL_HEADER_ROWS = 1;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
 const SCROLLBAR_SIZE = 14;
@@ -31,8 +32,8 @@ const getRating = (): Rating => {
 };
 
 const generateData = (): {
-  colHeadersViewModel: GridViewModel<DemoCellViewModel>;
-  rowHeadersViewModel: GridViewModel<DemoCellViewModel>;
+  colHeadersViewModel: GridViewModel<CellViewModel>;
+  rowHeadersViewModel: GridViewModel<CellViewModel>;
   mainViewModel: GridViewModel<DemoRatingCellViewModel>;
 } => {
   const mainViewModel: GridViewModel<DemoRatingCellViewModel> = {
@@ -77,7 +78,7 @@ const generateData = (): {
     }
   }
 
-  const rowHeadersViewModel: GridViewModel<DemoCellViewModel> = {
+  const rowHeadersViewModel: GridViewModel<CellViewModel> = {
     hideScrollbars: true,
     width: ROW_HEADER_WIDTH,
     height: VIEWPORT_HEIGHT - SCROLLBAR_SIZE,
@@ -96,7 +97,7 @@ const generateData = (): {
   for (let r = 0; r < NUM_ROWS; r++) {
     rowHeadersViewModel.cells[r] = [];
     for (let c = 0; c < 1; c++) {
-      const cell: Cell<DemoCellViewModel> = {
+      const cell: Cell<CellViewModel> = {
         renderer: TextCell,
         viewModel: {
           value: 'R' + r
@@ -114,7 +115,7 @@ const generateData = (): {
     }
   }
 
-  const colHeadersViewModel: GridViewModel<DemoCellViewModel> = {
+  const colHeadersViewModel: GridViewModel<CellViewModel> = {
     hideScrollbars: true,
     width: VIEWPORT_WIDTH - SCROLLBAR_SIZE,
     height: COL_HEADER_HEIGHT,
@@ -127,13 +128,13 @@ const generateData = (): {
   for (let c = 0; c < NUM_COLS; c++) {
     colHeadersViewModel.colWidths[c] = CELL_WIDTH;
   }
-  for (let r = 0; r < 1; r++) {
+  for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
     colHeadersViewModel.rowHeights[r] = COL_HEADER_HEIGHT;
   }
-  for (let r = 0; r < 1; r++) {
+  for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
     colHeadersViewModel.cells[r] = [];
     for (let c = 0; c < NUM_COLS; c++) {
-      const cell: Cell<DemoCellViewModel> = {
+      const cell: Cell<CellViewModel> = {
         renderer: TextCell,
         viewModel: {
           value: 'C' + c
@@ -150,6 +151,18 @@ const generateData = (): {
       
     }
   }
+  
+  // TODO: remove col/row view models
+  mainViewModel.colHeader = {
+    heights: colHeadersViewModel.rowHeights,
+    cells: colHeadersViewModel.cells,
+  };
+  
+  mainViewModel.rowHeader = {
+    widths: rowHeadersViewModel.colWidths,
+    cells: rowHeadersViewModel.cells,
+  };
+
   return {
     colHeadersViewModel,
     rowHeadersViewModel,
@@ -183,16 +196,16 @@ const App: React.FC = () => {
   const [bodyViewModel, setBodyViewModel] = useState(mainViewModel);
   
   const onViewModelUpdate = () => {
-    setHeaderViewModels({
-      col: {
-        ...headerViewModels.col,
-        x: bodyViewModel.x,
-      },
-      row: {
-        ...headerViewModels.row,
-        y: bodyViewModel.y,
-      }
-    });
+    // setHeaderViewModels({
+    //   col: {
+    //     ...headerViewModels.col,
+    //     x: bodyViewModel.x,
+    //   },
+    //   row: {
+    //     ...headerViewModels.row,
+    //     y: bodyViewModel.y,
+    //   }
+    // });
   }
   
   const collapseRow = (row: number) => {   
@@ -220,16 +233,16 @@ const App: React.FC = () => {
   return (
     <>
       <CssReset />
-      <ExampleGrid>
-        <Flex>
+      {/* <ExampleGrid> */}
+        {/* <Flex>
           <Left />
-          <PowerGrid<DemoCellViewModel> viewModel={headerViewModels.col} />
-        </Flex>
-        <Flex>
-          <PowerGrid<DemoCellViewModel> viewModel={headerViewModels.row} />
-          <PowerGrid<DemoRatingCellViewModel> viewModel={bodyViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick} />
-        </Flex>
-      </ExampleGrid>
+          <PowerGrid viewModel={headerViewModels.col} />
+        </Flex> */}
+        {/* <Flex> */}
+          {/* <PowerGrid viewModel={headerViewModels.row} /> */}
+          <PowerGrid viewModel={bodyViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick} />
+        {/* </Flex> */}
+      {/* </ExampleGrid> */}
     </>
   );
 };

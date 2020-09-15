@@ -3,7 +3,7 @@ import styled from '@emotion/styled';
 import { CellProps } from '../../src/types';
 import { Rating, DemoRatingCellViewModel } from '../types';
 
-const Cell = styled.td<{ rating: Rating; }>(({ rating }) => {
+const Cell = styled.div<{ rating: Rating; }>(({ rating }) => {
   let backgroundColor = '#eee';
   let color = '#333';
   switch (rating) {
@@ -30,19 +30,14 @@ const Cell = styled.td<{ rating: Rating; }>(({ rating }) => {
 });
 
 const TextCell: React.FC<CellProps<DemoRatingCellViewModel>> = (props: CellProps<DemoRatingCellViewModel>) => {
-  const { col, colspan, onClick, row, rowspan, style, viewModel: { rating, value } } = props;
+  const { onClick, row, viewModel: { rating, value } } = props;
 
   return (
     <Cell
-      role="gridcell"
-      aria-colindex={col + 1}
-      aria-rowindex={row + 1}
       rating={rating}
       onClick={onClick}
       data-row={row}
-      colSpan={colspan}
-      rowSpan={rowspan}
-      style={{ ...style, width: `${props.width - 2}px` }}
+      style={{ height: '100%', margin: '2px 2px 0 0' }}
     >
       {value}
     </Cell>

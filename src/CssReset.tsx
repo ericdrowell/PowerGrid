@@ -9,6 +9,8 @@ const CssReset: React.FC = () =>
       border: 0,
       outline: 0,
       fontSize: '100%',
+      fontWeight: 'normal',
+      textAlign: 'inherit',
       verticalAlign: 'baseline',
       background: 'transparent',
       borderSpacing: 0,
