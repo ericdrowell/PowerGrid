@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import styled from '@emotion/styled';
 import CssReset from '../src/CssReset';
 import PowerGrid from '../src/PowerGrid';
 import TextCell from './cells/TextCell';
-import { CellViewModel, GridViewModel, Cell } from '../src/types';
+import HeaderCell from './cells/HeaderCell';
+import { CellViewModel, GridViewModel, Cell, Position } from '../src/types';
 import { Rating, DemoRatingCellViewModel } from './types';
 
 const NUM_COLS = 100;
 const NUM_ROWS = 4000;
 const NUM_COL_HEADER_ROWS = 1;
+const NUM_ROW_HEADER_ROWS = 1;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
-const SCROLLBAR_SIZE = 14;
 // const VIEWPORT_WIDTH = 1280;
 // const VIEWPORT_HEIGHT = 550;
 const VIEWPORT_WIDTH = 800;
@@ -31,20 +31,25 @@ const getRating = (): Rating => {
   }
 };
 
-const generateData = (): {
-  colHeadersViewModel: GridViewModel<CellViewModel>;
-  rowHeadersViewModel: GridViewModel<CellViewModel>;
-  mainViewModel: GridViewModel<DemoRatingCellViewModel>;
-} => {
-  const mainViewModel: GridViewModel<DemoRatingCellViewModel> = {
+const generateData = (): GridViewModel<DemoRatingCellViewModel> => {
+  const gridViewModel: GridViewModel<DemoRatingCellViewModel> = {
     //maxCellsWhileScrolling: 200,
     width: VIEWPORT_WIDTH,
     height: VIEWPORT_HEIGHT,
-    x: 0,
-    y: 0,
     colWidths: [],
     rowHeights: [],
-    cells: []
+    cells: [],
+    headers: {
+      rowHeader: {
+        widths: [],
+        cells: [],
+      },
+      colHeader: {
+        heights: [],
+        cells: [],
+      },
+      intersections: [],
+    },
   };
 
   /*
@@ -58,13 +63,13 @@ const generateData = (): {
 
   */
   for (let c = 0; c < NUM_COLS; c++) {
-    mainViewModel.colWidths[c] = CELL_WIDTH;
+    gridViewModel.colWidths[c] = CELL_WIDTH;
   }
   for (let r = 0; r < NUM_ROWS; r++) {
-    mainViewModel.rowHeights[r] = CELL_HEIGHT;
+    gridViewModel.rowHeights[r] = CELL_HEIGHT;
   }
   for (let r = 0; r < NUM_ROWS; r++) {
-    mainViewModel.cells[r] = [];
+    gridViewModel.cells[r] = [];
     for (let c = 0; c < NUM_COLS; c++) {
       const cell: Cell<DemoRatingCellViewModel> = {
         renderer: TextCell,
@@ -74,31 +79,19 @@ const generateData = (): {
         }
       };
 
-      mainViewModel.cells[r][c] = cell;
+      gridViewModel.cells[r][c] = cell;
     }
   }
 
-  const rowHeadersViewModel: GridViewModel<CellViewModel> = {
-    hideScrollbars: true,
-    width: ROW_HEADER_WIDTH,
-    height: VIEWPORT_HEIGHT - SCROLLBAR_SIZE,
-    x: 0,
-    y: 0,
-    colWidths: [],
-    rowHeights: [],
-    cells: []
-  };
-  for (let c = 0; c < 1; c++) {
-    rowHeadersViewModel.colWidths[c] = ROW_HEADER_WIDTH;
+  // generate row headers
+  for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
+    gridViewModel.headers.rowHeader.widths[c] = ROW_HEADER_WIDTH;
   }
   for (let r = 0; r < NUM_ROWS; r++) {
-    rowHeadersViewModel.rowHeights[r] = CELL_HEIGHT;
-  }
-  for (let r = 0; r < NUM_ROWS; r++) {
-    rowHeadersViewModel.cells[r] = [];
-    for (let c = 0; c < 1; c++) {
+    gridViewModel.headers.rowHeader.cells[r] = [];
+    for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
       const cell: Cell<CellViewModel> = {
-        renderer: TextCell,
+        renderer: HeaderCell,
         viewModel: {
           value: 'R' + r
         }
@@ -109,33 +102,21 @@ const generateData = (): {
       }
       
       if (r !== 2) {
-        rowHeadersViewModel.cells[r][c] = cell;
+        gridViewModel.headers.rowHeader.cells[r][c] = cell;
       }
       
     }
   }
 
-  const colHeadersViewModel: GridViewModel<CellViewModel> = {
-    hideScrollbars: true,
-    width: VIEWPORT_WIDTH - SCROLLBAR_SIZE,
-    height: COL_HEADER_HEIGHT,
-    x: 0,
-    y: 0,
-    colWidths: [],
-    rowHeights: [],
-    cells: []
-  };
-  for (let c = 0; c < NUM_COLS; c++) {
-    colHeadersViewModel.colWidths[c] = CELL_WIDTH;
+  // generate column headers
+  for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
+    gridViewModel.headers.colHeader.heights[r] = COL_HEADER_HEIGHT;
   }
   for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
-    colHeadersViewModel.rowHeights[r] = COL_HEADER_HEIGHT;
-  }
-  for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
-    colHeadersViewModel.cells[r] = [];
+    gridViewModel.headers.colHeader.cells[r] = [];
     for (let c = 0; c < NUM_COLS; c++) {
       const cell: Cell<CellViewModel> = {
-        renderer: TextCell,
+        renderer: HeaderCell,
         viewModel: {
           value: 'C' + c
         }
@@ -146,81 +127,52 @@ const generateData = (): {
       }
 
       if (c !== 2) {
-        colHeadersViewModel.cells[r][c] = cell;
+        gridViewModel.headers.colHeader.cells[r][c] = cell;
       }
       
     }
   }
   
-  // TODO: remove col/row view models
-  mainViewModel.colHeader = {
-    heights: colHeadersViewModel.rowHeights,
-    cells: colHeadersViewModel.cells,
-  };
-  
-  mainViewModel.rowHeader = {
-    widths: rowHeadersViewModel.colWidths,
-    cells: rowHeadersViewModel.cells,
-  };
+  // generate header intersections
+  // for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
+  //   gridViewModel.headers.intersections[r] = [];
+  //   for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
+  //     const cell: Cell<CellViewModel> = {
+  //       renderer: HeaderCell,
+  //       viewModel: {
+  //         value: `C${c}R${r}`,
+  //       }
+  //     };
+  //     gridViewModel.headers.intersections[r][c] = cell;
+  //   }
+  // }
 
-  return {
-    colHeadersViewModel,
-    rowHeadersViewModel,
-    mainViewModel,
-  };
+  return gridViewModel;
 };
 
-const { colHeadersViewModel, rowHeadersViewModel, mainViewModel } = generateData();
+const gridViewModel = generateData();
 
-console.log('mainViewModel:');
-console.log(mainViewModel);
-console.log('rowHeadersViewModel:');
-console.log(rowHeadersViewModel);
-console.log('colHeadersViewModel:');
-console.log(colHeadersViewModel);
-
-const Flex = styled.div({
-  display: 'flex',
-})
-
-const ExampleGrid = styled.div(Flex, {
-  flexDirection: 'column',
-});
-
-const Left = styled.div({
-  flex: '0 0 70px',
-});
+console.log('gridViewModel:');
+console.log(gridViewModel);
 
 const App: React.FC = () => {
-  const [headerViewModels, setHeaderViewModels] = useState({ col: colHeadersViewModel, row: rowHeadersViewModel });
-  const [bodyViewModel, setBodyViewModel] = useState(mainViewModel);
+  const [viewModel, setViewModel] = useState(gridViewModel);
   
-  const onViewModelUpdate = () => {
-    // setHeaderViewModels({
-    //   col: {
-    //     ...headerViewModels.col,
-    //     x: bodyViewModel.x,
-    //   },
-    //   row: {
-    //     ...headerViewModels.row,
-    //     y: bodyViewModel.y,
-    //   }
-    // });
+  const onScroll = (scrollPosition: Position) => {
+    // console.log(`scroll position: ${scrollPosition.x}, ${scrollPosition.y}`);
   }
   
   const collapseRow = (row: number) => {   
-    setBodyViewModel({
-      ...bodyViewModel,
-      cells: [...bodyViewModel.cells.slice(0, row), ...bodyViewModel.cells.slice(row + 1)],
-      rowHeights: [...bodyViewModel.rowHeights.slice(0, row), ...bodyViewModel.rowHeights.slice(row + 1)],
-    });
-    
-    setHeaderViewModels({
-      ...headerViewModels,
-      row: {
-        ...headerViewModels.row,
-        cells: [...headerViewModels.row.cells.slice(0, row), ...headerViewModels.row.cells.slice(row + 1)],
-        rowHeights: [...headerViewModels.row.rowHeights.slice(0, row), ...headerViewModels.row.rowHeights.slice(row + 1)],
+    setViewModel({
+      ...viewModel,
+      cells: [...viewModel.cells.slice(0, row), ...viewModel.cells.slice(row + 1)],
+      rowHeights: [...viewModel.rowHeights.slice(0, row), ...viewModel.rowHeights.slice(row + 1)],
+      headers: {
+        ...viewModel.headers,
+        rowHeader: {
+          ...viewModel.headers.rowHeader,
+          cells: [...viewModel.headers.rowHeader.cells.slice(0, row), ...viewModel.headers.rowHeader.cells.slice(row + 1)],
+        },
       },
     });
   };
@@ -233,16 +185,7 @@ const App: React.FC = () => {
   return (
     <>
       <CssReset />
-      {/* <ExampleGrid> */}
-        {/* <Flex>
-          <Left />
-          <PowerGrid viewModel={headerViewModels.col} />
-        </Flex> */}
-        {/* <Flex> */}
-          {/* <PowerGrid viewModel={headerViewModels.row} /> */}
-          <PowerGrid viewModel={bodyViewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick} />
-        {/* </Flex> */}
-      {/* </ExampleGrid> */}
+      <PowerGrid viewModel={viewModel} onCellClick={onCellClick} onScroll={onScroll} />
     </>
   );
 };

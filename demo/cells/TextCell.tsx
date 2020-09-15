@@ -23,6 +23,10 @@ const Cell = styled.div<{ rating: Rating; }>(({ rating }) => {
   return {
     backgroundColor,
     color,
+    height: '100%',
+    padding: '5px',
+    boxSizing: 'border-box',
+    margin: '1px 1px 0 0',
     '&:hover': {
       backgroundColor: '#b0d9fe',
     },
@@ -37,7 +41,6 @@ const TextCell: React.FC<CellProps<DemoRatingCellViewModel>> = (props: CellProps
       rating={rating}
       onClick={onClick}
       data-row={row}
-      style={{ height: '100%', margin: '2px 2px 0 0' }}
     >
       {value}
     </Cell>

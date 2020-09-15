@@ -1,23 +1,16 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { GridViewModel, Cell, CellViewModel } from './types';
+import { GridViewModel, Cell, CellViewModel, Position } from './types';
 
-type CellMeta = {
-  x: number;
-  y: number;
+type CellMeta = Position & {
   width: number,
   height: number,
   visible: boolean;
   // direction of cell relative to center of grid
-  direction: {
-    x: number;
-    y: number;
-  }
+  direction: Position;
 };
 
-type GridMeta = {
-  x: number;
-  y: number;
+type GridMeta = Position & {
   colWidths: number[];
   rowHeights: number[];
   colStarts: number[];
@@ -26,6 +19,8 @@ type GridMeta = {
   innerHeight: number;
   colHeaderHeights: number[];
   totalColHeaderHeight: number;
+  rowHeaderWidths: number[];
+  totalRowHeaderWidth: number;
 };
 
 type InternalCell<T extends CellViewModel> = Cell<T> & {
@@ -36,6 +31,8 @@ type InternalCell<T extends CellViewModel> = Cell<T> & {
 enum CellType {
   ColumnHeader = 'columnheader',
   GridCell = 'gridcell',
+  HeaderIntersection = '',
+  RowHeader = 'rowheader',
 };
 
 // TODO: this probably needs to change per browser.  Probably should auto calculate.
@@ -46,10 +43,15 @@ const Container = styled.div({
   overflow: 'hidden',
 });
 
-const ShadowGrid = styled.div<{ hideScrollbars?: boolean; headerHeight?: number }>(({ headerHeight = 0 }) => ({
-  width: '100%',
-  height: `calc(100% - ${headerHeight}px)`,
-  top: `${headerHeight}px`,
+const ShadowGrid = styled.div<{
+  hideScrollbars?: boolean;
+  colHeaderHeight?: number;
+  rowHeaderWidth?: number;
+}>(({ colHeaderHeight = 0, rowHeaderWidth = 0 }) => ({
+  width: `calc(100% - ${rowHeaderWidth}px)`,
+  height: `calc(100% - ${colHeaderHeight}px)`,
+  top: `${colHeaderHeight}px`,
+  left: `${rowHeaderWidth}px`,
   overflow: 'auto',
   position: 'absolute',
 }), ({ hideScrollbars }) => hideScrollbars && ({
@@ -69,10 +71,9 @@ const GridViewport = styled.table({
   overflow: 'hidden',
 });
 
-const GridRow = styled.tr<{ zIndex?: number; }>(({ zIndex }) => ({
-  zIndex,
+const GridRow = styled.tr({
   position: 'absolute',
-}));
+});
 
 const GridCell = styled.td<{ width: number; height: number; }>(({ width, height }) => ({
   width: `${width}px`,
@@ -81,7 +82,9 @@ const GridCell = styled.td<{ width: number; height: number; }>(({ width, height 
   overflow: 'hidden',
 }));
 
-const GridHeaderCell = GridCell.withComponent('th');
+const GridHeaderCell = styled(GridCell.withComponent('th'))({
+  zIndex: 1,
+});
 
 const getStarts = (sizes: number[], offset: number = 0): number[] => {
   const starts: number[] = [];
@@ -106,18 +109,34 @@ const getCellMeta = <T extends CellViewModel>(
   const gridY = gridMeta.y;
   const gridWidth = viewModel.width;
   const gridHeight = viewModel.height - gridMeta.totalColHeaderHeight;
-  const x = gridMeta.colStarts[col];
+  let x = gridMeta.colStarts[col];
   let y = gridMeta.rowStarts[row];
   
   if (cellType === CellType.ColumnHeader) {
     y = row * gridMeta.colHeaderHeights[row] + gridY;
+  } else if (cellType === CellType.RowHeader) {
+    x = col * gridMeta.rowHeaderWidths[col] + gridX;
+  } else if (cellType === CellType.HeaderIntersection) {
+    x = viewModel.headers!.rowHeader!.widths.slice(0, col).reduce((ttl, x) => ttl += x, 0) + gridX;
+    y = viewModel.headers!.colHeader!.heights.slice(0, row).reduce((ttl, y) => ttl += y, 0) + gridY;
   }
 
   let colspanRemaining = cell.colspan === undefined ? 1 : cell.colspan;
   let colspanCol = col;
   let width = 0;
   while (colspanRemaining > 0) {
-    width += gridMeta.colWidths[colspanCol];
+    switch (cellType) {
+      case CellType.GridCell:
+      case CellType.ColumnHeader:
+        width += gridMeta.colWidths[colspanCol];
+        break;
+      case CellType.RowHeader:
+        width += gridMeta.rowHeaderWidths[colspanCol];
+        break;
+      case CellType.HeaderIntersection:
+        width = viewModel.headers!.rowHeader!.widths[col];
+        break;
+    }
     colspanCol++;
     colspanRemaining--;
   }
@@ -128,10 +147,14 @@ const getCellMeta = <T extends CellViewModel>(
   while (rowspanRemaining > 0) {
     switch (cellType) {
       case CellType.GridCell:
+      case CellType.RowHeader:
         height += gridMeta.rowHeights[rowspanRow];
         break;
       case CellType.ColumnHeader:
         height += gridMeta.colHeaderHeights[rowspanRow];
+        break;
+      case CellType.HeaderIntersection:
+        height = viewModel.headers!.colHeader!.heights[row];
         break;
     }
     rowspanRow++;
@@ -300,12 +323,15 @@ const getViewportCells = <T extends CellViewModel>(viewModel: GridViewModel<T>, 
   return viewportCells;
 };
 
-const getGridMeta = <T extends CellViewModel>(viewModel: GridViewModel<T>): GridMeta => {
-  const colHeaderHeights = viewModel.colHeader ? viewModel.colHeader.heights : [];
-  const totalColHeaderHeight = viewModel.colHeader ? viewModel.colHeader.heights.reduce((ttl, h) => ttl += h, 0) : 0;
+const getGridMeta = <T extends CellViewModel>(viewModel: GridViewModel<T>, scrollPosition: Position): GridMeta => {
+  const colHeaderHeights = viewModel.headers?.colHeader?.heights ?? [];
+  const totalColHeaderHeight = viewModel.headers?.colHeader ? viewModel.headers.colHeader.heights.reduce((ttl, h) => ttl += h, 0) : 0;
+  const rowHeaderWidths = viewModel.headers?.rowHeader?.widths ?? [];
+  const totalRowHeaderWidth = viewModel.headers?.rowHeader ? viewModel.headers.rowHeader.widths.reduce((ttl, w) => ttl += w, 0) : 0;
+  
   const colWidths = viewModel.colWidths;
   const rowHeights = viewModel.rowHeights;
-  const colStarts = getStarts(colWidths);
+  const colStarts = getStarts(colWidths, totalRowHeaderWidth);
   const rowStarts = getStarts(rowHeights, totalColHeaderHeight);
   const innerWidth = colStarts[colStarts.length-1] + colWidths[colWidths.length-1];
   const innerHeight = rowStarts[rowStarts.length-1] + rowHeights[rowHeights.length-1];
@@ -319,15 +345,17 @@ const getGridMeta = <T extends CellViewModel>(viewModel: GridViewModel<T>): Grid
     innerHeight,
     colHeaderHeights,
     totalColHeaderHeight,
-    x: viewModel.x,
-    y: viewModel.y,
+    rowHeaderWidths,
+    totalRowHeaderWidth,
+    x: scrollPosition.x,
+    y: scrollPosition.y,
   };
 };
 
 export type PowerGridProps<T extends CellViewModel> = {
   viewModel: GridViewModel<T>;
   onCellClick?: (event: React.MouseEvent<HTMLElement>) => void;
-  onViewModelUpdate?: () => void;
+  onScroll?: (scrollPosition: Position) => void;
   role?: 'grid' | 'treegrid',
 };
 
@@ -337,13 +365,14 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
   };
 
   private cachedGridMeta: GridMeta;
+  private currentScrollPosition: Position = { x: 0, y: 0 };
+  private scrollTimeout: number;
 
   protected mainGridRef = React.createRef<HTMLDivElement>();
   protected shadowGridRef = React.createRef<HTMLDivElement>();
   protected isUpdating: boolean = false;
-  protected scrolling: boolean = false;
-  protected dirty: boolean = false;
-  protected scrollTimeout: number | undefined;
+  protected isScrolling: boolean = false;
+  protected isDirty: boolean = false;
   
   componentDidMount(): void {
     this.startUpdateLoop();
@@ -351,9 +380,9 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
 
   render(): React.ReactNode {
     const { role, viewModel } = this.props;
-    const gridMeta: GridMeta = getGridMeta(viewModel);
+    const gridMeta: GridMeta = getGridMeta(viewModel, this.currentScrollPosition);
     this.cachedGridMeta = gridMeta;
-    const maxCells = viewModel.maxCellsWhileScrolling && viewModel.maxCellsWhileScrolling >= 0 && this.scrolling ?
+    const maxCells = viewModel.maxCellsWhileScrolling && viewModel.maxCellsWhileScrolling >= 0 && this.isScrolling ?
       viewModel.maxCellsWhileScrolling :
       Number.POSITIVE_INFINITY;
 
@@ -362,6 +391,13 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
     let rowCells: React.ReactNode[] = [];
 
     viewportCells.forEach((cell: InternalCell<T>, i) => {
+      // row headers
+      if (viewModel.headers?.rowHeader && rowCells.length === 0) {
+        const rowIndex = cell.row;
+        viewModel.headers.rowHeader.cells[rowIndex].forEach((rowHeaderCell, i) => {
+          rowCells.push(this.renderCell({ ...rowHeaderCell, row: cell.row, col: i } as InternalCell<T>, gridMeta, CellType.RowHeader));
+        });
+      }
       rowCells.push(this.renderCell(cell, gridMeta));
       const nextCell = viewportCells[i + 1] as InternalCell<T>;
       // create new row if the next cell is in a different row or on last cell
@@ -374,16 +410,16 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
     
     // column headers
     let columnHeader: React.ReactNode= null;
-    if (viewModel.colHeader) {
+    if (viewModel.headers?.colHeader) {
       const startCell = viewportCells[0] as InternalCell<T>;
       const endCell = viewportCells[viewportCells.length - 1] as InternalCell<T>;
-      console.log(`Visible Range: [${startCell.col}, ${startCell.row}] - [${endCell.col}, ${endCell.row}]`);
+      // console.log(`Visible Range: [${startCell.col}, ${startCell.row}] - [${endCell.col}, ${endCell.row}]`);
       
       columnHeader = (
         <thead role="rowgroup">
-          {viewModel.colHeader.cells.map((row, i) => (
-            <GridRow zIndex={1} key={`header_${i}`} role="row">
-              {/* {viewModel.rowHeader?.widths.map((w) => <td />)} */}
+          {viewModel.headers.colHeader.cells.map((row, i) => (
+            <GridRow key={`header_${i}`} role="row">
+              {this.renderHeaderIntersectionCells(i, gridMeta)}
               {row.slice(startCell.col, endCell.col + 1).map((cell, j) =>
                 this.renderCell({ ...cell, row: i, col: j + startCell.col } as InternalCell<T>, gridMeta, CellType.ColumnHeader)
               )}
@@ -413,7 +449,12 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
           height: `${viewModel.height}px`,
         }}
       >
-        <ShadowGrid headerHeight={gridMeta.totalColHeaderHeight} hideScrollbars={viewModel.hideScrollbars} ref={this.shadowGridRef}>
+        <ShadowGrid
+          colHeaderHeight={gridMeta.totalColHeaderHeight}
+          rowHeaderWidth={gridMeta.totalRowHeaderWidth}
+          hideScrollbars={viewModel.hideScrollbars}
+          ref={this.shadowGridRef}
+        >
           <ShadowGridContent style={{ width: `${gridMeta.innerWidth}px`, height: `${gridMeta.innerHeight}px` }} />
         </ShadowGrid>
         <GridViewport
@@ -435,10 +476,9 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
   }
   
   componentDidUpdate(): void {
-    const viewModel = this.props.viewModel;
     const shadowGridEl = this.shadowGridRef.current!;
-    shadowGridEl.scrollLeft = viewModel.x;
-    shadowGridEl.scrollTop = viewModel.y;
+    shadowGridEl.scrollLeft = this.currentScrollPosition.x;
+    shadowGridEl.scrollTop = this.currentScrollPosition.y;
   }
   
   componentWillUnmount(): void {
@@ -459,14 +499,15 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
     return (
       <Cell
         role={cellType}
-        aria-colindex={cell.col + 1}
-        aria-rowindex={cell.row + 1}
+        aria-colindex={cellType !== CellType.RowHeader ? cell.col + 1 : undefined}
+        aria-rowindex={cellType !== CellType.ColumnHeader ? cell.row + 1 : undefined}
         colSpan={cell.colspan}
         rowSpan={cell.rowspan}
-        key={`${cell.row}-${cell.col}`}
+        key={`${cellType}-${cell.row}-${cell.col}`}
         width={width}
         height={height}
         style={{
+          zIndex: cellType === CellType.HeaderIntersection ? 2 : undefined,
           transform: `translate(${x}px, ${y}px)`,
         }}
       >
@@ -482,47 +523,64 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
     );
   };
   
+  private readonly renderHeaderIntersectionCells = (row: number, gridMeta: GridMeta): React.ReactNode => {
+    const { viewModel: { headers } } = this.props;
+    
+    if (headers?.rowHeader && headers.colHeader) {
+      return headers.rowHeader.widths.map((width, col) => {
+        let cell: Cell<CellViewModel> = {
+          renderer: () => <div style={{ backgroundColor: '#fff', height: '100%', }} />,
+          viewModel: {},
+        };
+        if (headers?.intersections &&
+          headers.intersections[row] &&
+          headers.intersections[row][col]) {
+          cell = headers?.intersections[row][col];
+        }
+        return this.renderCell({ ...cell, row, col } as InternalCell<T>, gridMeta, CellType.HeaderIntersection);
+      });
+    }
+    return null;
+  };
+  
   private readonly handleScroll = (evt: React.UIEvent<HTMLDivElement>) => {
-    const viewModel = this.props.viewModel;
     const shadowGridEl = this.shadowGridRef.current!;
-    viewModel.x = shadowGridEl.scrollLeft;
-    viewModel.y = shadowGridEl.scrollTop;
-    this.onScroll();
+    this.onScroll({
+      x: shadowGridEl.scrollLeft,
+      y: shadowGridEl.scrollTop,
+    });
   };
   
   private readonly handleWheel = (evt: React.WheelEvent<HTMLDivElement>) => {
-    const viewModel = this.props.viewModel;
-    viewModel.x += evt.deltaX;
-    viewModel.y += evt.deltaY;
-    this.onScroll();
+    this.onScroll({
+      x: this.currentScrollPosition.x + evt.deltaX,
+      y: this.currentScrollPosition.y + evt.deltaY,
+    });
   };
   
-  private readonly onScroll = (): void => { 
+  private readonly onScroll = (targetScrollPosition: Position): void => { 
     const viewModel = this.props.viewModel;
     const gridMeta = this.cachedGridMeta;
     const minX = 0;
     const minY = 0;
     const maxX = gridMeta.innerWidth - viewModel.width + SCROLLBAR_SIZE;
     const maxY = gridMeta.innerHeight - viewModel.height + SCROLLBAR_SIZE;
-  
-    if (viewModel.x < minX) {
-      viewModel.x = minX;
-    } else if (viewModel.x > maxX) {
-      viewModel.x = maxX;
-    }
+    
+    const normalizedScrollPosition: Position = {
+      x: Math.min(Math.max(minX, targetScrollPosition.x), maxX),
+      y: Math.min(Math.max(minY, targetScrollPosition.y), maxY),
+    };
+    
+    if (this.currentScrollPosition.x !== normalizedScrollPosition.x || this.currentScrollPosition.y !== normalizedScrollPosition.y) {
+      this.currentScrollPosition = normalizedScrollPosition;
 
-    if (viewModel.y < minY) {
-      viewModel.y = minY;
-    } else if (viewModel.y > maxY) {
-      viewModel.y = maxY;
-    }
+      if (this.props.onScroll) {
+        this.props.onScroll(this.currentScrollPosition);
+      }
 
-    if (this.props.onViewModelUpdate) {
-      this.props.onViewModelUpdate();
+      this.setScrolling();
+      this.isDirty = true;
     }
-
-    this.setScrolling();
-    this.dirty = true;
   };
   
   private readonly startUpdateLoop = (): void => {
@@ -537,9 +595,9 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
   };
   
   private readonly update = (): void => {
-    if (this.dirty) {
+    if (this.isDirty) {
       this.forceUpdate();
-      this.dirty = false;
+      this.isDirty = false;
     }
     if (this.isUpdating) {
       requestAnimationFrame(() => {
@@ -549,11 +607,11 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
   };
   
   private readonly setScrolling = (): void => {
-    this.scrolling = true;
+    this.isScrolling = true;
     clearTimeout(this.scrollTimeout);
     this.scrollTimeout = window.setTimeout(() => {
-      this.scrolling = false;
-      this.dirty = true;
+      this.isScrolling = false;
+      this.isDirty = true;
     }, 100);
   };
 }

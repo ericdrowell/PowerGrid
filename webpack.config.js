@@ -22,7 +22,7 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-react', '@babel/preset-typescript', '@emotion/babel-preset-css-prop'],
+            presets: ['@babel/env', '@babel/preset-react', '@babel/preset-typescript', '@emotion/babel-preset-css-prop'],
             plugins: ['@babel/plugin-proposal-class-properties'],
           },
         },
