@@ -41,12 +41,10 @@ enum CellType {
 // TODO: this probably needs to change per browser.  Probably should auto calculate.
 const SCROLLBAR_SIZE = 15;
 
-const Container = styled.div<{ width: number; height: number; }>(({ width, height }) => ({
-  width: `${width}px`,
-  height: `${height}px`,
+const Container = styled.div({
   position: 'relative',
   overflow: 'hidden',
-}));
+});
 
 const ShadowGrid = styled.div<{ hideScrollbars?: boolean; headerHeight?: number }>(({ headerHeight = 0 }) => ({
   width: '100%',
@@ -62,26 +60,21 @@ const ShadowGrid = styled.div<{ hideScrollbars?: boolean; headerHeight?: number 
   },
 }));
 
-const ShadowGridContent = styled.div<{ width: number; height: number; }>(({ width, height }) => ({
-  width: `${width}px`,
-  height: `${height}px`,
+const ShadowGridContent = styled.div({
   position: 'absolute',
-}));
+});
 
-const GridViewport = styled.table<{ width: number; height: number; }>(({ width, height }) => ({
-  width: `${width}px`,
-  height: `${height}px`,
+const GridViewport = styled.table({
   position: 'absolute',
   overflow: 'hidden',
-}));
+});
 
 const GridRow = styled.tr<{ zIndex?: number; }>(({ zIndex }) => ({
   zIndex,
   position: 'absolute',
 }));
 
-const GridCell = styled.td<{ x: number; y: number; width: number; height: number; }>(({ x, y, width, height }) => ({
-  transform: `translate(${x}px, ${y}px)`,
+const GridCell = styled.td<{ width: number; height: number; }>(({ width, height }) => ({
   width: `${width}px`,
   height: `${height}px`,
   position: 'absolute',
@@ -413,20 +406,24 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
     return(
       <Container
         ref={this.mainGridRef}
-        width={viewModel.width}
-        height={viewModel.height}
         onScroll={this.handleScroll}
         onWheel={this.handleWheel}
+        style={{
+          width: `${viewModel.width}px`,
+          height: `${viewModel.height}px`,
+        }}
       >
         <ShadowGrid headerHeight={gridMeta.totalColHeaderHeight} hideScrollbars={viewModel.hideScrollbars} ref={this.shadowGridRef}>
-          <ShadowGridContent width={gridMeta.innerWidth} height={gridMeta.innerHeight} />
+          <ShadowGridContent style={{ width: `${gridMeta.innerWidth}px`, height: `${gridMeta.innerHeight}px` }} />
         </ShadowGrid>
         <GridViewport
           aria-colcount={gridMeta.colWidths.length}
           aria-rowcount={gridMeta.rowHeights.length}
           role={role}
-          width={viewportWidth}
-          height={viewportHeight}
+          style={{
+            width: `${viewportWidth}px`,
+            height: `${viewportHeight}px`,
+          }}
         >
           {columnHeader}
           <tbody role="rowgroup">
@@ -455,7 +452,6 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
     const x = cellMeta.x - gridMeta.x;
     const y = cellMeta.y - gridMeta.y;
     const { height, width } = cellMeta;
-    const sizeAndPosition = { x, y, width, height };
     
     const Cell = cellType === CellType.GridCell ? GridCell : GridHeaderCell;
     const InnerCell = cell.renderer;
@@ -468,11 +464,18 @@ class PowerGrid<T extends CellViewModel = CellViewModel> extends React.PureCompo
         colSpan={cell.colspan}
         rowSpan={cell.rowspan}
         key={`${cell.row}-${cell.col}`}
-        {...sizeAndPosition}
+        width={width}
+        height={height}
+        style={{
+          transform: `translate(${x}px, ${y}px)`,
+        }}
       >
         <InnerCell
           {...cell}
-          {...sizeAndPosition}
+          width={width}
+          height={height}
+          x={x}
+          y={y}
           onClick={onCellClick}
         />
       </Cell>
