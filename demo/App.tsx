@@ -7,10 +7,10 @@ import { Rating, DemoRatingCellViewModel } from './types';
 
 const NUM_COLS = 100;
 const NUM_ROWS = 4000;
-const NUM_COL_HEADER_ROWS = 1;
+const NUM_COL_HEADER_ROWS = 2;
 const NUM_ROW_HEADER_ROWS = 1;
-const NUM_COL_FOOTER_ROWS = 1;
-const NUM_ROW_FOOTER_ROWS = 1;
+const NUM_COL_FOOTER_ROWS = 2;
+const NUM_ROW_FOOTER_ROWS = 3;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
 const VIEWPORT_WIDTH = 1280;
@@ -38,9 +38,7 @@ const getRating = (): Rating => {
 
 const generateData = (): GridViewModel<DemoRatingCellViewModel, CellViewModel> => {
   const gridViewModel: GridViewModel<DemoRatingCellViewModel, CellViewModel> = {
-    //maxCellsWhileScrolling: 200,
-    width: VIEWPORT_WIDTH,
-    height: VIEWPORT_HEIGHT,
+    // maxCellsWhileScrolling: 200,
     colWidths: [],
     rowHeights: [],
     cells: [],
@@ -257,6 +255,42 @@ const generateData = (): GridViewModel<DemoRatingCellViewModel, CellViewModel> =
         gridViewModel.footers.rightIntersections[r][c] = cell;
       }
     }
+    
+    // gridViewModel.headers.leftIntersections = [[{
+    //   renderer: IntersectionCell,
+    //   viewModel: {
+    //     value: 'Merged Cells',
+    //   },
+    //   colspan: NUM_ROW_HEADER_ROWS,
+    //   rowspan: NUM_COL_HEADER_ROWS,
+    // }]];
+    
+    // gridViewModel.headers.rightIntersections = [[{
+    //   renderer: IntersectionCell,
+    //   viewModel: {
+    //     value: 'Merged Cells',
+    //   },
+    //   colspan: NUM_ROW_FOOTER_ROWS,
+    //   rowspan: NUM_COL_HEADER_ROWS,
+    // }]];
+    
+    // gridViewModel.footers.leftIntersections = [[{
+    //   renderer: IntersectionCell,
+    //   viewModel: {
+    //     value: 'Merged Cells',
+    //   },
+    //   colspan: NUM_ROW_HEADER_ROWS,
+    //   rowspan: NUM_COL_FOOTER_ROWS,
+    // }]];
+    
+    // gridViewModel.footers.rightIntersections = [[{
+    //   renderer: IntersectionCell,
+    //   viewModel: {
+    //     value: 'Merged Cells',
+    //   },
+    //   colspan: NUM_ROW_FOOTER_ROWS,
+    //   rowspan: NUM_COL_FOOTER_ROWS,
+    // }]];
   }
 
   return gridViewModel;
@@ -286,6 +320,13 @@ const App: React.FC = () => {
           cells: [...viewModel.headers.rowHeader.cells.slice(0, row), ...viewModel.headers.rowHeader.cells.slice(row + 1)],
         },
       },
+      footers: {
+        ...viewModel.footers,
+        rowFooter: {
+          ...viewModel.footers.rowFooter,
+          cells: [...viewModel.footers.rowFooter.cells.slice(0, row), ...viewModel.footers.rowFooter.cells.slice(row + 1)],
+        },
+      },
     });
   };
   
@@ -297,7 +338,13 @@ const App: React.FC = () => {
   return (
     <>
       <CssReset />
-      <PowerGrid viewModel={viewModel} onCellClick={onCellClick} onScroll={onScroll} />
+      <PowerGrid
+        width={VIEWPORT_WIDTH}
+        height={VIEWPORT_HEIGHT}
+        viewModel={viewModel}
+        onCellClick={onCellClick}
+        onScroll={onScroll}
+      />
     </>
   );
 };

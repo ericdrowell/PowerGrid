@@ -25,8 +25,6 @@ export type FixedGridRow<T extends CellViewModel> = {
 }
 
 export type GridViewModel<T extends CellViewModel, H extends CellViewModel = T> = {
-  width: number;
-  height: number;
   colWidths: number[];
   rowHeights: number[];
   cells: Cell<T>[][];

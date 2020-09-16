@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { GridViewModel, Cell, CellViewModel, Position } from './types';
+import { GridViewModel, Cell, CellViewModel, Position, FixedGridRow, FixedGridColumn } from './types';
 
 // TODO: this probably needs to change per browser.  Probably should auto calculate.
 const SCROLLBAR_SIZE = 15;
@@ -9,7 +9,9 @@ type CellMeta = Position & {
   width: number,
   height: number,
   visible: boolean;
-  // direction of cell relative to center of grid
+  /**
+   * direction of cell relative to center of grid
+   */
   direction: Position;
 };
 
@@ -59,9 +61,6 @@ const ShadowGrid = styled.div<{
   colFooterHeight?: number;
   rowFooterWidth?: number;
 }>(({ colHeaderHeight = 0, rowHeaderWidth = 0, colFooterHeight = 0, rowFooterWidth = 0 }) => ({
-  // TODO: do we actually need to size the shadow grid to the body? what will this do to scrollbars?
-  width: `calc(100% - ${rowHeaderWidth + rowFooterWidth}px)`,
-  height: `calc(100% - ${colHeaderHeight + colFooterHeight}px)`,
   top: `${colHeaderHeight}px`,
   left: `${rowHeaderWidth}px`,
   bottom: `${colFooterHeight}px`,
@@ -102,6 +101,8 @@ const GridHeaderCell = styled(GridCell.withComponent('th'))({
 });
 
 export type PowerGridProps<T extends CellViewModel, H extends CellViewModel = T> = {
+  width: number;
+  height: number;
   viewModel: GridViewModel<T, H>;
   onCellClick?: (event: React.MouseEvent<HTMLElement>) => void;
   onScroll?: (scrollPosition: Position) => void;
@@ -128,7 +129,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
   }
 
   render(): React.ReactNode {
-    const { role, viewModel } = this.props;
+    const { height, role, viewModel, width } = this.props;
     const gridMeta: GridMeta = this.getGridMeta(viewModel, this.currentScrollPosition);
     this.cachedGridMeta = gridMeta;
     const maxCells = viewModel.maxCellsWhileScrolling && viewModel.maxCellsWhileScrolling >= 0 && this.isScrolling ?
@@ -175,11 +176,11 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
         <thead role="rowgroup">
           {viewModel.headers.colHeader.cells.map((row, i) => (
             <GridRow key={`header_${i}`} role="row">
-              {this.renderColHeaderIntersectionCells(i, gridMeta, CellType.HeaderIntersectionLeft)}
+              {this.renderHeaderIntersectionCells(i, gridMeta, CellType.HeaderIntersectionLeft)}
               {row.slice(startCell.col, endCell.col + 1).map((cell, j) =>
                 this.renderCell({ ...cell, row: i, col: j + startCell.col } as InternalCell, gridMeta, CellType.ColumnHeader)
               )}
-              {this.renderColHeaderIntersectionCells(i, gridMeta, CellType.HeaderIntersectionRight)}
+              {this.renderHeaderIntersectionCells(i, gridMeta, CellType.HeaderIntersectionRight)}
             </GridRow>
           ))}
         </thead>
@@ -197,23 +198,23 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
         <tfoot role="rowgroup">
           {viewModel.footers.colFooter.cells.map((row, i) => (
             <GridRow key={`footer_${i}`} role="row">
-              {this.renderColFooterIntersectionCells(i, gridMeta, CellType.FooterIntersectionLeft)}
+              {this.renderHeaderIntersectionCells(i, gridMeta, CellType.FooterIntersectionLeft)}
               {row.slice(startCell.col, endCell.col + 1).map((cell, j) =>
                 this.renderCell({ ...cell, row: i, col: j + startCell.col } as InternalCell, gridMeta, CellType.ColumnFooter)
               )}
-              {this.renderColFooterIntersectionCells(i, gridMeta, CellType.FooterIntersectionRight)}
+              {this.renderHeaderIntersectionCells(i, gridMeta, CellType.FooterIntersectionRight)}
             </GridRow>
           ))}
         </tfoot>
       );
     }
 
-    let viewportWidth = viewModel.width;
+    let viewportWidth = width;
     if (!viewModel.hideScrollbars) {
       viewportWidth -= SCROLLBAR_SIZE;
     }
 
-    let viewportHeight = viewModel.height;
+    let viewportHeight = height;
     if (!viewModel.hideScrollbars) {
       viewportHeight -= SCROLLBAR_SIZE;
     }
@@ -224,8 +225,8 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
         onScroll={this.handleScroll}
         onWheel={this.handleWheel}
         style={{
-          width: `${viewModel.width}px`,
-          height: `${viewModel.height}px`,
+          width: `${width}px`,
+          height: `${height}px`,
         }}
       >
         <ShadowGrid
@@ -269,8 +270,8 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
   }
   
   private readonly renderCell = (cell: InternalCell, gridMeta: GridMeta, cellType: CellType = CellType.GridCell): React.ReactNode => {
-    const { onCellClick, viewModel } = this.props;
-    const cellMeta = this.getCellMeta(viewModel, gridMeta, cell as Cell<T>, cell.row, cell.col, cellType);
+    const { onCellClick } = this.props;
+    const cellMeta = this.getCellMeta(gridMeta, cell as Cell<T>, cell.row, cell.col, cellType);
     const x = cellMeta.x - gridMeta.x;
     const y = cellMeta.y - gridMeta.y;
     const { height, width } = cellMeta;
@@ -313,50 +314,54 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
     );
   };
   
-  // TODO: consolidate w/ footer method
-  private readonly renderColHeaderIntersectionCells = (
+  private readonly renderHeaderIntersectionCells = (
     row: number,
     gridMeta: GridMeta,
-    cellType: CellType.HeaderIntersectionLeft | CellType.HeaderIntersectionRight,
+    cellType: CellType.HeaderIntersectionLeft | CellType.HeaderIntersectionRight | CellType.FooterIntersectionLeft | CellType.FooterIntersectionRight,
   ): React.ReactNode => {
     const { viewModel: { headers, footers } } = this.props;
-    
-    const intersectionAxis = cellType === CellType.HeaderIntersectionLeft ? headers?.rowHeader : footers?.rowFooter;
-    if (headers?.colHeader && intersectionAxis) {
-      const intersections = cellType == CellType.HeaderIntersectionLeft ? headers?.leftIntersections : headers?.rightIntersections;
-      return intersectionAxis.widths.map((width, col) => {
-        let cell: Partial<InternalCell> = {
-          renderer: () => <div style={{ backgroundColor: '#fff', height: '100%', }} />,
-        };
-        if (intersections &&
-          intersections[row] &&
-          intersections[row][col]) {
-          cell = intersections[row][col];
-        }
-        return this.renderCell({ ...cell, row, col } as InternalCell, gridMeta, cellType);
-      });
+    let intersectionXAxis: FixedGridColumn<H> | undefined;
+    let intersectionYAxis: FixedGridRow<H> | undefined;
+    let intersections: Cell<H>[][] | undefined;
+
+    switch (cellType) {
+      case CellType.HeaderIntersectionLeft:
+        intersectionXAxis = headers?.colHeader;
+        intersectionYAxis = headers?.rowHeader;
+        intersections = headers?.leftIntersections;
+        break;
+      case CellType.FooterIntersectionLeft:
+        intersectionXAxis = footers?.colFooter;
+        intersectionYAxis = headers?.rowHeader;
+        intersections = footers?.leftIntersections;
+        break;
+      case CellType.HeaderIntersectionRight:
+        intersectionXAxis = headers?.colHeader;
+        intersectionYAxis = footers?.rowFooter;
+        intersections = headers?.rightIntersections;
+        break;
+      case CellType.FooterIntersectionRight:
+        intersectionXAxis = footers?.colFooter;
+        intersectionYAxis = footers?.rowFooter;
+        intersections = footers?.rightIntersections;
+        break;
     }
-    return null;
-  };
-  
-  private readonly renderColFooterIntersectionCells = (
-    row: number,
-    gridMeta: GridMeta,
-    cellType: CellType.FooterIntersectionLeft | CellType.FooterIntersectionRight,
-  ): React.ReactNode => {
-    const { viewModel: { headers, footers } } = this.props;
-    
-    const intersectionAxis = cellType === CellType.FooterIntersectionLeft ? headers?.rowHeader : footers?.rowFooter;
-    if (footers?.colFooter && intersectionAxis) {
-      return intersectionAxis.widths.map((width, col) => {
+
+    if (intersectionXAxis && intersectionYAxis) {
+      return intersectionYAxis.widths.map((width, col) => {
         let cell: Partial<InternalCell> = {
           renderer: () => <div style={{ backgroundColor: '#fff', height: '100%', }} />,
         };
-        const intersections = cellType == CellType.FooterIntersectionLeft ? footers?.leftIntersections : footers?.rightIntersections;
-        if (intersections &&
-          intersections[row] &&
-          intersections[row][col]) {
-          cell = intersections[row][col];
+        if (intersections) {
+          if (intersections[row] &&
+            intersections[row][col]) {
+            // TODO: skip other cells if colspan/rowspan > 1?
+            cell = intersections[row][col];
+          } else {
+            // don't render a cell if intersections are defined, but no cell for this coord is defined
+            // console.log(`not rendering a cell for ${cellType} at [${col}, ${row}]`);
+            return null;
+          }
         }
         return this.renderCell({ ...cell, row, col } as InternalCell, gridMeta, cellType);
       });
@@ -380,12 +385,12 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
   };
   
   private readonly onScroll = (targetScrollPosition: Position): void => { 
-    const viewModel = this.props.viewModel;
+    const { height, width } = this.props;
     const gridMeta = this.cachedGridMeta;
     const minX = 0;
     const minY = 0;
-    const maxX = gridMeta.innerWidth - viewModel.width + SCROLLBAR_SIZE;
-    const maxY = gridMeta.innerHeight - viewModel.height + SCROLLBAR_SIZE;
+    const maxX = gridMeta.innerWidth - width + SCROLLBAR_SIZE;
+    const maxY = gridMeta.innerHeight - height + SCROLLBAR_SIZE;
     
     const normalizedScrollPosition: Position = {
       x: Math.min(Math.max(minX, targetScrollPosition.x), maxX),
@@ -451,53 +456,50 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
   }
   
   private readonly getCellMeta = (
-    viewModel: GridViewModel<T, H>,
     gridMeta: GridMeta,
     cell: Cell<T>,
     row: number,
     col: number,
     cellType: CellType = CellType.GridCell
   ): CellMeta => {
-    const gridX = gridMeta.x;
-    const gridY = gridMeta.y;
-    const gridWidth = viewModel.width; // - gridMeta.totalRowHeaderWidth - gridMeta.totalRowFooterWidth;
-    const gridHeight = viewModel.height; // + gridMeta.totalColHeaderHeight + gridMeta.totalColFooterHeight;
+    const { x: gridX, y: gridY } = gridMeta;
+    const { width: gridWidth, height: gridHeight } = this.props;
+
     let x = gridMeta.colStarts[col];
     let y = gridMeta.rowStarts[row];
-    
-    // TODO: accommodate varying row/col heights/widths
-    switch (cellType) {
-      case CellType.ColumnHeader:
-        y = row * gridMeta.colHeaderHeights[row] + gridY;
-        break;
-      case CellType.ColumnFooter:
-        y = gridY + gridHeight - ((row + 1) * gridMeta.colFooterHeights[row]) - SCROLLBAR_SIZE;
-        break;
-      case CellType.RowHeader:
-        x = col * gridMeta.rowHeaderWidths[col] + gridX;
-        break;
-      case CellType.RowFooter:
-        x = gridX + gridWidth - ((col + 1) * gridMeta.rowFooterWidths[col]) - SCROLLBAR_SIZE;
-        break;
-      case CellType.HeaderIntersectionLeft:
-        x = viewModel.headers!.rowHeader!.widths.slice(0, col).reduce((ttl, x) => ttl += x, 0) + gridX;
-        y = viewModel.headers!.colHeader!.heights.slice(0, row).reduce((ttl, y) => ttl += y, 0) + gridY;
-        break;
-      case CellType.HeaderIntersectionRight:
-        x = gridX + gridWidth - viewModel.footers!.rowFooter!.widths.slice(0, col + 1).reduce((ttl, x) => ttl += x, 0)  - SCROLLBAR_SIZE;
-        y = viewModel.headers!.colHeader!.heights.slice(0, row).reduce((ttl, y) => ttl += y, 0) + gridY;
-        break;
-      case CellType.FooterIntersectionLeft:
-        x = viewModel.headers!.rowHeader!.widths.slice(0, col).reduce((ttl, x) => ttl += x, 0) + gridX;
-        y = gridY + gridHeight - viewModel.footers!.colFooter!.heights.slice(0, row + 1).reduce((ttl, y) => ttl += y, 0) - SCROLLBAR_SIZE;
-        break;
-      case CellType.FooterIntersectionRight:
-        x = gridX + gridWidth - viewModel.footers!.rowFooter!.widths.slice(0, col + 1).reduce((ttl, x) => ttl += x, 0)  - SCROLLBAR_SIZE;
-        y = gridY + gridHeight - viewModel.footers!.colFooter!.heights.slice(0, row + 1).reduce((ttl, y) => ttl += y, 0) - SCROLLBAR_SIZE;
-        break;
+
+    // TODO: cache header positions -- can leverage getStarts() in getGridMeta()
+    // set header X position
+    if (cellType !== CellType.GridCell) {
+      switch (cellType) {
+        case CellType.RowHeader:
+        case CellType.HeaderIntersectionLeft:
+        case CellType.FooterIntersectionLeft:
+          x = gridMeta.rowHeaderWidths.slice(0, col).reduce((ttl, x) => ttl += x, 0) + gridX;
+          break;
+        case CellType.RowFooter:
+        case CellType.HeaderIntersectionRight:
+        case CellType.FooterIntersectionRight:
+          x = gridX + gridWidth - gridMeta.rowFooterWidths.slice(0, gridMeta.rowFooterWidths.length - col).reduce((ttl, x) => ttl += x, 0) - SCROLLBAR_SIZE;
+          break;
+      }
+
+      // set header Y position
+      switch (cellType) {
+        case CellType.ColumnHeader:
+        case CellType.HeaderIntersectionLeft:
+        case CellType.HeaderIntersectionRight:
+          y = gridMeta.colHeaderHeights.slice(0, row).reduce((ttl, y) => ttl += y, 0) + gridY;
+          break;
+        case CellType.ColumnFooter:
+        case CellType.FooterIntersectionLeft:
+        case CellType.FooterIntersectionRight:
+          y = gridY + gridHeight - gridMeta.colFooterHeights.slice(0, gridMeta.colFooterHeights.length - row).reduce((ttl, y) => ttl += y, 0) - SCROLLBAR_SIZE;
+          break;
+      }
     }
   
-    let colspanRemaining = cell.colspan === undefined ? 1 : cell.colspan;
+    let colspanRemaining = cell.colspan ?? 1;
     let colspanCol = col;
     let width = 0;
     while (colspanRemaining > 0) {
@@ -508,29 +510,21 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
           width += gridMeta.colWidths[colspanCol];
           break;
         case CellType.RowHeader:
+        case CellType.HeaderIntersectionLeft:
+        case CellType.FooterIntersectionLeft:
           width += gridMeta.rowHeaderWidths[colspanCol];
           break;
         case CellType.RowFooter:
-          width += gridMeta.rowFooterWidths[colspanCol];
-          break;
-        case CellType.HeaderIntersectionLeft:
-          width += viewModel.headers!.rowHeader!.widths[colspanCol];
-          break;
         case CellType.HeaderIntersectionRight:
-          width += viewModel.footers!.rowFooter!.widths[colspanCol];
-          break;
-        case CellType.FooterIntersectionLeft:
-          width += viewModel.headers!.rowHeader!.widths[colspanCol];
-          break;
         case CellType.FooterIntersectionRight:
-          width += viewModel.footers!.rowFooter!.widths[colspanCol];
+          width += gridMeta.rowFooterWidths[colspanCol];
           break;
       }
       colspanCol++;
       colspanRemaining--;
     }
   
-    let rowspanRemaining = cell.rowspan === undefined ? 1 : cell.rowspan;
+    let rowspanRemaining = cell.rowspan ?? 1;
     let rowspanRow = row;
     let height = 0;
     while (rowspanRemaining > 0) {
@@ -541,18 +535,14 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
           height += gridMeta.rowHeights[rowspanRow];
           break;
         case CellType.ColumnHeader:
+        case CellType.HeaderIntersectionLeft:
+        case CellType.HeaderIntersectionRight:
           height += gridMeta.colHeaderHeights[rowspanRow];
           break;
         case CellType.ColumnFooter:
-          height += gridMeta.colFooterHeights[rowspanRow];
-          break;
-        case CellType.HeaderIntersectionLeft:
-        case CellType.HeaderIntersectionRight:
-          height += viewModel.headers!.colHeader!.heights[rowspanRow];
-          break;
         case CellType.FooterIntersectionLeft:
         case CellType.FooterIntersectionRight:
-          height += viewModel.footers!.colFooter!.heights[rowspanRow];
+          height += gridMeta.colFooterHeights[rowspanRow];
           break;
       }
       rowspanRow++;
@@ -567,7 +557,6 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       width,
       height,
       visible,
-      // direction of cell relative to center of grid
       direction: {
         x: x > gridX + gridWidth/2 ? -1 : 1,
         y: y > gridY + gridHeight/2 ? -1 : 1
@@ -589,7 +578,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       startCell = viewModel.cells[row][col] as InternalCell;
 
       if (startCell) {
-        const startCellMeta = this.getCellMeta(viewModel, gridMeta, startCell as Cell<T>, row, col);
+        const startCellMeta = this.getCellMeta(gridMeta, startCell as Cell<T>, row, col);
 
         // if we find a visible cell, we have found the start cell!
         if (startCellMeta.visible) {
@@ -649,7 +638,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       }
       const cell = viewModel.cells[startRow][minCol];
       if (cell) {
-        const cellMeta = this.getCellMeta(viewModel, gridMeta, cell, startRow, minCol);
+        const cellMeta = this.getCellMeta(gridMeta, cell, startRow, minCol);
         if (!cellMeta.visible) {
           break;
         }
@@ -664,7 +653,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       }
       const cell = viewModel.cells[startRow][maxCol];
       if (cell) {
-        const cellMeta = this.getCellMeta(viewModel, gridMeta, cell, startRow, maxCol);
+        const cellMeta = this.getCellMeta(gridMeta, cell, startRow, maxCol);
         if (!cellMeta.visible) {
           break;
         }
@@ -679,7 +668,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       }
       const cell = viewModel.cells[minRow][startCol];
       if (cell) {
-        const cellMeta = this.getCellMeta(viewModel, gridMeta, cell, minRow, startCol);
+        const cellMeta = this.getCellMeta(gridMeta, cell, minRow, startCol);
         if (!cellMeta.visible) {
           break;
         }
@@ -694,7 +683,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       }
       const cell = viewModel.cells[maxRow][startCol];
       if (cell) {
-        const cellMeta = this.getCellMeta(viewModel, gridMeta, cell, maxRow, startCol);
+        const cellMeta = this.getCellMeta(gridMeta, cell, maxRow, startCol);
         if (!cellMeta.visible) {
           break;
         }
@@ -736,8 +725,8 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
     const rowHeights = viewModel.rowHeights;
     const colStarts = this.getStarts(colWidths, totalRowHeaderWidth);
     const rowStarts = this.getStarts(rowHeights, totalColHeaderHeight);
-    const innerWidth = colStarts[colStarts.length-1] + colWidths[colWidths.length-1]; // TODO: account for headers and footers
-    const innerHeight = rowStarts[rowStarts.length-1] + rowHeights[rowHeights.length-1];
+    const innerWidth = colStarts[colStarts.length-1] + colWidths[colWidths.length-1] + totalRowFooterWidth;
+    const innerHeight = rowStarts[rowStarts.length-1] + rowHeights[rowHeights.length-1] + totalColFooterHeight;
   
     return {
       colWidths,
