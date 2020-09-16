@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import CssReset from '../src/CssReset';
 import PowerGrid from '../src/PowerGrid';
-import TextCell from './cells/TextCell';
-import HeaderCell from './cells/HeaderCell';
+import { TextCell, HeaderCell, FooterCell, IntersectionCell } from './cells';
 import { CellViewModel, GridViewModel, Cell, Position } from '../src/types';
 import { Rating, DemoRatingCellViewModel } from './types';
 
@@ -10,14 +9,20 @@ const NUM_COLS = 100;
 const NUM_ROWS = 4000;
 const NUM_COL_HEADER_ROWS = 1;
 const NUM_ROW_HEADER_ROWS = 1;
+const NUM_COL_FOOTER_ROWS = 1;
+const NUM_ROW_FOOTER_ROWS = 1;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
-// const VIEWPORT_WIDTH = 1280;
-// const VIEWPORT_HEIGHT = 550;
-const VIEWPORT_WIDTH = 800;
-const VIEWPORT_HEIGHT = 500;
+const VIEWPORT_WIDTH = 1280;
+const VIEWPORT_HEIGHT = 550;
+// const VIEWPORT_WIDTH = 800;
+// const VIEWPORT_HEIGHT = 500;
 const COL_HEADER_HEIGHT = 30;
 const ROW_HEADER_WIDTH = 70;
+const COL_FOOTER_HEIGHT = 30;
+const ROW_FOOTER_WIDTH = 100;
+
+const GENERATE_INTERSECTIONS = true;
 
 const getRating = (): Rating => {
   let val = Math.random();
@@ -31,8 +36,8 @@ const getRating = (): Rating => {
   }
 };
 
-const generateData = (): GridViewModel<DemoRatingCellViewModel> => {
-  const gridViewModel: GridViewModel<DemoRatingCellViewModel> = {
+const generateData = (): GridViewModel<DemoRatingCellViewModel, CellViewModel> => {
+  const gridViewModel: GridViewModel<DemoRatingCellViewModel, CellViewModel> = {
     //maxCellsWhileScrolling: 200,
     width: VIEWPORT_WIDTH,
     height: VIEWPORT_HEIGHT,
@@ -48,7 +53,20 @@ const generateData = (): GridViewModel<DemoRatingCellViewModel> => {
         heights: [],
         cells: [],
       },
-      intersections: [],
+      leftIntersections: [],
+      rightIntersections: [],
+    },
+    footers: {
+      rowFooter: {
+        widths: [],
+        cells: [],
+      },
+      colFooter: {
+        heights: [],
+        cells: [],
+      },
+      leftIntersections: [],
+      rightIntersections: [],
     },
   };
 
@@ -107,6 +125,31 @@ const generateData = (): GridViewModel<DemoRatingCellViewModel> => {
       
     }
   }
+  
+  // generate row footers
+  for (let c = 0; c < NUM_ROW_FOOTER_ROWS; c++) {
+    gridViewModel.footers.rowFooter.widths[c] = ROW_FOOTER_WIDTH;
+  }
+  for (let r = 0; r < NUM_ROWS; r++) {
+    gridViewModel.footers.rowFooter.cells[r] = [];
+    for (let c = 0; c < NUM_ROW_FOOTER_ROWS; c++) {
+      const cell: Cell<CellViewModel> = {
+        renderer: FooterCell,
+        viewModel: {
+          value: 'R' + r
+        }
+      };
+
+      if (r === 1) {
+        cell.rowspan = 2;
+      }
+      
+      if (r !== 2) {
+        gridViewModel.footers.rowFooter.cells[r][c] = cell;
+      }
+      
+    }
+  }
 
   // generate column headers
   for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
@@ -133,19 +176,88 @@ const generateData = (): GridViewModel<DemoRatingCellViewModel> => {
     }
   }
   
-  // generate header intersections
-  // for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
-  //   gridViewModel.headers.intersections[r] = [];
-  //   for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
-  //     const cell: Cell<CellViewModel> = {
-  //       renderer: HeaderCell,
-  //       viewModel: {
-  //         value: `C${c}R${r}`,
-  //       }
-  //     };
-  //     gridViewModel.headers.intersections[r][c] = cell;
-  //   }
-  // }
+  // generate column footers
+  for (let r = 0; r < NUM_COL_FOOTER_ROWS; r++) {
+    gridViewModel.footers.colFooter.heights[r] = COL_FOOTER_HEIGHT;
+  }
+  for (let r = 0; r < NUM_COL_FOOTER_ROWS; r++) {
+    gridViewModel.footers.colFooter.cells[r] = [];
+    for (let c = 0; c < NUM_COLS; c++) {
+      const cell: Cell<CellViewModel> = {
+        renderer: FooterCell,
+        viewModel: {
+          value: 'C' + c
+        }
+      };
+
+      if (c === 1) {
+        cell.colspan = 2;
+      }
+
+      if (c !== 2) {
+        gridViewModel.footers.colFooter.cells[r][c] = cell;
+      }
+      
+    }
+  }
+  
+  if (GENERATE_INTERSECTIONS) {
+    // generate header left intersections
+    for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
+      gridViewModel.headers.leftIntersections[r] = [];
+      for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
+        const cell: Cell<CellViewModel> = {
+          renderer: IntersectionCell,
+          viewModel: {
+            value: `C${c}R${r}`,
+          }
+        };
+        gridViewModel.headers.leftIntersections[r][c] = cell;
+      }
+    }
+    
+    // generate header right intersections
+    for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
+      gridViewModel.headers.rightIntersections[r] = [];
+      for (let c = 0; c < NUM_ROW_FOOTER_ROWS; c++) {
+        const cell: Cell<CellViewModel> = {
+          renderer: IntersectionCell,
+          viewModel: {
+            value: `C${c}R${r}`,
+          }
+        };
+        gridViewModel.headers.rightIntersections[r][c] = cell;
+      }
+    }
+    
+    // generate footer left intersections
+    for (let r = 0; r < NUM_COL_FOOTER_ROWS; r++) {
+      gridViewModel.footers.leftIntersections[r] = [];
+      for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
+        const cell: Cell<CellViewModel> = {
+          renderer: IntersectionCell,
+          viewModel: {
+            value: `C${c}R${r}`,
+          }
+        };
+        gridViewModel.footers.leftIntersections[r][c] = cell;
+      }
+    }
+  
+    // generate footer right intersections
+    for (let r = 0; r < NUM_COL_FOOTER_ROWS; r++) {
+      gridViewModel.footers.rightIntersections[r] = [];
+      for (let c = 0; c < NUM_ROW_FOOTER_ROWS; c++) {
+        const cell: Cell<CellViewModel> = {
+          renderer: IntersectionCell,
+          viewModel: {
+            value: `C${c}R${r}`,
+          }
+        };
+        gridViewModel.footers.rightIntersections[r][c] = cell;
+      }
+    }
+  }
 
   return gridViewModel;
 };

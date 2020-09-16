@@ -4,27 +4,27 @@ export type Position = {
 };
 
 export type CellViewModel = {
-  value?: string;
+  value: string;
 };
 
 export type Cell<T extends CellViewModel> = {
   renderer: React.ComponentClass<CellProps<T>> | React.FC<CellProps<T>>;
-  viewModel: T;
+  viewModel?: T;
   colspan?: number;
   rowspan?: number;
 };
 
-export type GridColumnHeader<T extends CellViewModel> = {
+export type FixedGridColumn<T extends CellViewModel> = {
   cells: Cell<T>[][];
   heights: number[];
 }
 
-export type GridRowHeader<T extends CellViewModel> = {
+export type FixedGridRow<T extends CellViewModel> = {
   cells: Cell<T>[][];
   widths: number[];
 }
 
-export type GridViewModel<T extends CellViewModel, H extends CellViewModel = CellViewModel> = {
+export type GridViewModel<T extends CellViewModel, H extends CellViewModel = T> = {
   width: number;
   height: number;
   colWidths: number[];
@@ -32,10 +32,18 @@ export type GridViewModel<T extends CellViewModel, H extends CellViewModel = Cel
   cells: Cell<T>[][];
   hideScrollbars?: boolean;
   maxCellsWhileScrolling?: number;
+  // TODO: we can do better for header/footer structure
   headers?: {
-    colHeader?: GridColumnHeader<H>;
-    rowHeader?: GridRowHeader<H>;
-    intersections?: Cell<H>[][];
+    colHeader?: FixedGridColumn<H>;
+    rowHeader?: FixedGridRow<H>;
+    leftIntersections?: Cell<H>[][];
+    rightIntersections?: Cell<H>[][];
+  };
+  footers?: {
+    colFooter?: FixedGridColumn<H>;
+    rowFooter?: FixedGridRow<H>;
+    leftIntersections?: Cell<H>[][];
+    rightIntersections?: Cell<H>[][];
   };
 };
 
