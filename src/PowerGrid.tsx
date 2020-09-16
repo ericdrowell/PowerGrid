@@ -145,18 +145,18 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       if (viewModel.headers?.rowHeader && rowCells.length === 0) {
         const rowIndex = cell.row;
         viewModel.headers.rowHeader.cells[rowIndex].forEach((rowHeaderCell, i) => {
-          rowCells.push(this.renderCell({ ...rowHeaderCell, row: cell.row, col: i } as InternalCell, gridMeta, CellType.RowHeader));
+          rowCells.push(this.renderCell({ ...rowHeaderCell, row: cell.row, col: i }, gridMeta, CellType.RowHeader));
         });
       }
       rowCells.push(this.renderCell(cell, gridMeta));
-      const nextCell = viewportCells[i + 1] as InternalCell;
+      const nextCell = viewportCells[i + 1];
       // create new row if the next cell is in a different row or on last cell
       if (!nextCell || nextCell.row !== cell.row) {
         // row footers
         if (viewModel.footers?.rowFooter) {
           const rowIndex = cell.row;
           viewModel.footers.rowFooter.cells[rowIndex].forEach((rowFooterCell, i) => {
-            rowCells.push(this.renderCell({ ...rowFooterCell, row: cell.row, col: i } as InternalCell, gridMeta, CellType.RowFooter));
+            rowCells.push(this.renderCell({ ...rowFooterCell, row: cell.row, col: i }, gridMeta, CellType.RowFooter));
           });
         }
         const reactRow = <GridRow role="row" aria-rowindex={cell.row + 1} key={cell.row}>{rowCells}</GridRow>;
@@ -168,8 +168,8 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
     // column headers
     let columnHeader: React.ReactNode= null;
     if (viewModel.headers?.colHeader) {
-      const startCell = viewportCells[0] as InternalCell;
-      const endCell = viewportCells[viewportCells.length - 1] as InternalCell;
+      const startCell = viewportCells[0];
+      const endCell = viewportCells[viewportCells.length - 1];
       // console.log(`Visible Range: [${startCell.col}, ${startCell.row}] - [${endCell.col}, ${endCell.row}]`);
       
       columnHeader = (
@@ -178,7 +178,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
             <GridRow key={`header_${i}`} role="row">
               {this.renderHeaderIntersectionCells(i, gridMeta, CellType.HeaderIntersectionLeft)}
               {row.slice(startCell.col, endCell.col + 1).map((cell, j) =>
-                this.renderCell({ ...cell, row: i, col: j + startCell.col } as InternalCell, gridMeta, CellType.ColumnHeader)
+                this.renderCell({ ...cell, row: i, col: j + startCell.col }, gridMeta, CellType.ColumnHeader)
               )}
               {this.renderHeaderIntersectionCells(i, gridMeta, CellType.HeaderIntersectionRight)}
             </GridRow>
@@ -190,8 +190,8 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
     // column footers
     let columnFooter: React.ReactNode= null;
     if (viewModel.footers?.colFooter) {
-      const startCell = viewportCells[0] as InternalCell;
-      const endCell = viewportCells[viewportCells.length - 1] as InternalCell;
+      const startCell = viewportCells[0];
+      const endCell = viewportCells[viewportCells.length - 1];
       // console.log(`Visible Range: [${startCell.col}, ${startCell.row}] - [${endCell.col}, ${endCell.row}]`);
       
       columnFooter = (
@@ -200,7 +200,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
             <GridRow key={`footer_${i}`} role="row">
               {this.renderHeaderIntersectionCells(i, gridMeta, CellType.FooterIntersectionLeft)}
               {row.slice(startCell.col, endCell.col + 1).map((cell, j) =>
-                this.renderCell({ ...cell, row: i, col: j + startCell.col } as InternalCell, gridMeta, CellType.ColumnFooter)
+                this.renderCell({ ...cell, row: i, col: j + startCell.col }, gridMeta, CellType.ColumnFooter)
               )}
               {this.renderHeaderIntersectionCells(i, gridMeta, CellType.FooterIntersectionRight)}
             </GridRow>
