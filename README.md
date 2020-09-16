@@ -24,7 +24,7 @@ export type MyCellProps = CellProps<{
   value: number;
 }>;
 
-const Cell = styled.td<{ rating: string; }>(({ rating }) => {
+const Cell = styled.div<{ rating: string; }>(({ rating }) => {
   let backgroundColor = '#eee';
   let color = '#333';
   switch (rating) {
@@ -44,6 +44,7 @@ const Cell = styled.td<{ rating: string; }>(({ rating }) => {
   return {
     backgroundColor,
     color,
+    height: '100%',
     '&:hover': {
       backgroundColor: '#b0d9fe',
     },
@@ -51,10 +52,14 @@ const Cell = styled.td<{ rating: string; }>(({ rating }) => {
 });
 
 const MyCell: React.FC<MyCellProps> = (props: MyCellProps) => {
-  const { onClick, row, style, viewModel, width } = props;
+  const { onClick, row, viewModel } = props;
 
   return (
-    <Cell rating={viewModel.rating} onClick={onClick} data-row={row} style={{...style , width: `${(width - 2)}px`}}>
+    <Cell
+      rating={viewModel.rating}
+      onClick={onClick}
+      data-row={row}
+    >
       {viewModel.value}
     </Cell>
   )
@@ -71,8 +76,6 @@ let viewModel = {
   maxCellsWhileScrolling: 1000,
   x: 0,
   y: 0,
-  width: 200,
-  height: 100,
   colWidths: [100, 120],
   rowHeights: [80, 60],
   // row based.  array of rows, and each row is an array of cells
@@ -116,5 +119,11 @@ let viewModel = {
 ## Usage App Example
 
 ```JSX
-<PowerGrid viewModel={viewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
+<PowerGrid
+  width={200}
+  height={100}
+  viewModel={viewModel}
+  onScroll={onScroll}
+  onCellClick={onCellClick}
+/>
 ```
