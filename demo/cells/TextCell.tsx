@@ -33,18 +33,7 @@ const Cell = styled.div<{ rating: Rating; }>(({ rating }) => {
   };
 });
 
-const TextCell: React.FC<CellProps<DemoRatingCellViewModel>> = (props: CellProps<DemoRatingCellViewModel>) => {
-  const { onClick, row, viewModel: { rating, value } } = props;
-
-  return (
-    <Cell
-      rating={rating}
-      onClick={onClick}
-      data-row={row}
-    >
-      {value}
-    </Cell>
-  )
-};
+const TextCell: React.FC<CellProps<DemoRatingCellViewModel>> = ({ viewModel: { rating, value } }) =>
+  <Cell rating={rating}>{value}</Cell>;
 
 export default TextCell;

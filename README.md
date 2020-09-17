@@ -52,17 +52,13 @@ const Cell = styled.div<{ rating: string; }>(({ rating }) => {
 });
 
 const MyCell: React.FC<MyCellProps> = (props: MyCellProps) => {
-  const { onClick, row, viewModel } = props;
+  const { viewModel } = props;
 
   return (
-    <Cell
-      rating={viewModel.rating}
-      onClick={onClick}
-      data-row={row}
-    >
+    <Cell rating={viewModel.rating}>
       {viewModel.value}
     </Cell>
-  )
+  );
 };
 
 export default MyCell;

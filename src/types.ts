@@ -14,12 +14,12 @@ export type Cell<T extends CellViewModel> = {
   rowspan?: number;
 };
 
-export type FixedGridColumn<T extends CellViewModel> = {
+export type FixedGridRows<T extends CellViewModel> = {
   cells: Cell<T>[][];
   heights: number[];
 }
 
-export type FixedGridRow<T extends CellViewModel> = {
+export type FixedGridColumn<T extends CellViewModel> = {
   cells: Cell<T>[][];
   widths: number[];
 }
@@ -32,14 +32,14 @@ export type GridViewModel<T extends CellViewModel, H extends CellViewModel = T> 
   maxCellsWhileScrolling?: number;
   // TODO: we can do better for header/footer structure
   headers?: {
-    colHeader?: FixedGridColumn<H>;
-    rowHeader?: FixedGridRow<H>;
+    colHeader?: FixedGridRows<H>;
+    rowHeader?: FixedGridColumn<H>;
     leftIntersections?: Cell<H>[][];
     rightIntersections?: Cell<H>[][];
   };
   footers?: {
-    colFooter?: FixedGridColumn<H>;
-    rowFooter?: FixedGridRow<H>;
+    colFooter?: FixedGridRows<H>;
+    rowFooter?: FixedGridColumn<H>;
     leftIntersections?: Cell<H>[][];
     rightIntersections?: Cell<H>[][];
   };
@@ -50,5 +50,4 @@ export type CellProps<T extends CellViewModel> = Position & Omit<Cell<T>, 'rende
   row: number;
   width: number;
   height: number;
-  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
 };
