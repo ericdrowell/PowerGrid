@@ -35,29 +35,31 @@ const generateData = (
     rowHeights: [],
     cells: [],
     headers: {
-      rowHeader: {
+      rowHeaders: {
         widths: [],
         cells: [],
       },
-      colHeader: {
+      colHeaders: {
         heights: [],
         cells: [],
       },
-      leftIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
-      rightIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
     },
     footers: {
-      rowFooter: {
+      rowFooters: {
         widths: [],
         cells: [],
       },
-      colFooter: {
+      colFooters: {
         heights: [],
         cells: [],
       },
-      leftIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
-      rightIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
     },
+    intersections: {
+      topLeftIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
+      topRightIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
+      bottomLeftIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
+      bottomRightIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
+    }
   };
 
   /*
@@ -93,10 +95,10 @@ const generateData = (
 
   // generate row headers
   for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
-    gridViewModel.headers.rowHeader.widths[c] = ROW_HEADER_WIDTH;
+    gridViewModel.headers.rowHeaders.widths[c] = ROW_HEADER_WIDTH;
   }
   for (let r = 0; r < NUM_ROWS; r++) {
-    gridViewModel.headers.rowHeader.cells[r] = [];
+    gridViewModel.headers.rowHeaders.cells[r] = [];
     for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
       const cell: Cell<CellViewModel> = {
         renderer: HeaderCell,
@@ -110,7 +112,7 @@ const generateData = (
       }
       
       if (r !== 2) {
-        gridViewModel.headers.rowHeader.cells[r][c] = cell;
+        gridViewModel.headers.rowHeaders.cells[r][c] = cell;
       }
       
     }
@@ -118,10 +120,10 @@ const generateData = (
   
   // generate row footers
   for (let c = 0; c < NUM_ROW_FOOTER_ROWS; c++) {
-    gridViewModel.footers.rowFooter.widths[c] = ROW_FOOTER_WIDTH;
+    gridViewModel.footers.rowFooters.widths[c] = ROW_FOOTER_WIDTH;
   }
   for (let r = 0; r < NUM_ROWS; r++) {
-    gridViewModel.footers.rowFooter.cells[r] = [];
+    gridViewModel.footers.rowFooters.cells[r] = [];
     for (let c = 0; c < NUM_ROW_FOOTER_ROWS; c++) {
       const cell: Cell<CellViewModel> = {
         renderer: FooterCell,
@@ -135,7 +137,7 @@ const generateData = (
       }
       
       if (r !== 2) {
-        gridViewModel.footers.rowFooter.cells[r][c] = cell;
+        gridViewModel.footers.rowFooters.cells[r][c] = cell;
       }
       
     }
@@ -143,10 +145,10 @@ const generateData = (
 
   // generate column headers
   for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
-    gridViewModel.headers.colHeader.heights[r] = COL_HEADER_HEIGHT;
+    gridViewModel.headers.colHeaders.heights[r] = COL_HEADER_HEIGHT;
   }
   for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
-    gridViewModel.headers.colHeader.cells[r] = [];
+    gridViewModel.headers.colHeaders.cells[r] = [];
     for (let c = 0; c < NUM_COLS; c++) {
       const cell: Cell<CellViewModel> = {
         renderer: HeaderCell,
@@ -160,7 +162,7 @@ const generateData = (
       }
 
       if (c !== 2) {
-        gridViewModel.headers.colHeader.cells[r][c] = cell;
+        gridViewModel.headers.colHeaders.cells[r][c] = cell;
       }
       
     }
@@ -168,10 +170,10 @@ const generateData = (
   
   // generate column footers
   for (let r = 0; r < NUM_COL_FOOTER_ROWS; r++) {
-    gridViewModel.footers.colFooter.heights[r] = COL_FOOTER_HEIGHT;
+    gridViewModel.footers.colFooters.heights[r] = COL_FOOTER_HEIGHT;
   }
   for (let r = 0; r < NUM_COL_FOOTER_ROWS; r++) {
-    gridViewModel.footers.colFooter.cells[r] = [];
+    gridViewModel.footers.colFooters.cells[r] = [];
     for (let c = 0; c < NUM_COLS; c++) {
       const cell: Cell<CellViewModel> = {
         renderer: FooterCell,
@@ -185,7 +187,7 @@ const generateData = (
       }
 
       if (c !== 2) {
-        gridViewModel.footers.colFooter.cells[r][c] = cell;
+        gridViewModel.footers.colFooters.cells[r][c] = cell;
       }
       
     }
@@ -194,7 +196,7 @@ const generateData = (
   if (GENERATE_INTERSECTIONS) {
     // generate header left intersections
     for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
-      gridViewModel.headers.leftIntersections[r] = [];
+      gridViewModel.intersections.topLeftIntersections[r] = [];
       for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
         const cell: Cell<CellViewModel> = {
           renderer: IntersectionCell,
@@ -202,13 +204,13 @@ const generateData = (
             value: `C${c}R${r}`,
           }
         };
-        gridViewModel.headers.leftIntersections[r][c] = cell;
+        gridViewModel.intersections.topLeftIntersections[r][c] = cell;
       }
     }
     
     // generate header right intersections
     for (let r = 0; r < NUM_COL_HEADER_ROWS; r++) {
-      gridViewModel.headers.rightIntersections[r] = [];
+      gridViewModel.intersections.topRightIntersections[r] = [];
       for (let c = 0; c < NUM_ROW_FOOTER_ROWS; c++) {
         const cell: Cell<CellViewModel> = {
           renderer: IntersectionCell,
@@ -216,13 +218,13 @@ const generateData = (
             value: `C${c}R${r}`,
           }
         };
-        gridViewModel.headers.rightIntersections[r][c] = cell;
+        gridViewModel.intersections.topRightIntersections[r][c] = cell;
       }
     }
     
     // generate footer left intersections
     for (let r = 0; r < NUM_COL_FOOTER_ROWS; r++) {
-      gridViewModel.footers.leftIntersections[r] = [];
+      gridViewModel.intersections.bottomLeftIntersections[r] = [];
       for (let c = 0; c < NUM_ROW_HEADER_ROWS; c++) {
         const cell: Cell<CellViewModel> = {
           renderer: IntersectionCell,
@@ -230,13 +232,13 @@ const generateData = (
             value: `C${c}R${r}`,
           }
         };
-        gridViewModel.footers.leftIntersections[r][c] = cell;
+        gridViewModel.intersections.bottomLeftIntersections[r][c] = cell;
       }
     }
   
     // generate footer right intersections
     for (let r = 0; r < NUM_COL_FOOTER_ROWS; r++) {
-      gridViewModel.footers.rightIntersections[r] = [];
+      gridViewModel.intersections.bottomRightIntersections[r] = [];
       for (let c = 0; c < NUM_ROW_FOOTER_ROWS; c++) {
         const cell: Cell<CellViewModel> = {
           renderer: IntersectionCell,
@@ -244,7 +246,7 @@ const generateData = (
             value: `C${c}R${r}`,
           }
         };
-        gridViewModel.footers.rightIntersections[r][c] = cell;
+        gridViewModel.intersections.bottomRightIntersections[r][c] = cell;
       }
     }
     

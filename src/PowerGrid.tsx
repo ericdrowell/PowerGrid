@@ -16,24 +16,23 @@ type CellMeta = Position & {
 };
 
 type GridMeta = Position & {
+  innerWidth: number;
+  innerHeight: number;
   colWidths: number[];
   rowHeights: number[];
   colStarts: number[];
   rowStarts: number[];
-  innerWidth: number;
-  innerHeight: number;
-  // TODO: can do better here
   colHeaderHeights: number[];
   colHeaderStarts: number[];
-  totalColHeaderHeight: number;
   rowHeaderWidths: number[];
   rowHeaderStarts: number[];
-  totalRowHeaderWidth: number;
   colFooterHeights: number[];
   colFooterStarts: number[];
-  totalColFooterHeight: number;
   rowFooterWidths: number[];
   rowFooterStarts: number[];
+  totalColHeaderHeight: number;
+  totalRowHeaderWidth: number;
+  totalColFooterHeight: number;
   totalRowFooterWidth: number;
 };
 
@@ -147,7 +146,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       if (rowCells.length === 0) {
         // render row headers
         rowCells.push(
-          ...this.renderFixedGridColumns(viewModel.headers?.rowHeader, gridMeta, CellType.RowHeader, cell.row)
+          ...this.renderFixedGridColumns(viewModel.headers?.rowHeaders, gridMeta, CellType.RowHeader, cell.row)
         );
       }
       rowCells.push(this.renderCell(cell, gridMeta));
@@ -156,7 +155,7 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
       if (!nextCell || nextCell.row !== cell.row) {
         // render row footers
         rowCells.push(
-          ...this.renderFixedGridColumns(viewModel.footers?.rowFooter, gridMeta, CellType.RowFooter, cell.row)
+          ...this.renderFixedGridColumns(viewModel.footers?.rowFooters, gridMeta, CellType.RowFooter, cell.row)
         );
         reactViewportRows.push(<GridRow role="row" aria-rowindex={cell.row + 1} key={cell.row}>{rowCells}</GridRow>);
         rowCells = [];
@@ -204,11 +203,11 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
             height: `${viewportHeight}px`,
           }}
         >
-          {this.renderFixedGridRows(viewModel.headers?.colHeader, gridMeta, CellType.ColumnHeader, startCell.col, endCell.col)}
+          {this.renderFixedGridRows(viewModel.headers?.colHeaders, gridMeta, CellType.ColumnHeader, startCell.col, endCell.col)}
           <tbody role="rowgroup">
             {reactViewportRows}
           </tbody>
-          {this.renderFixedGridRows(viewModel.footers?.colFooter, gridMeta, CellType.ColumnFooter, startCell.col, endCell.col)}
+          {this.renderFixedGridRows(viewModel.footers?.colFooters, gridMeta, CellType.ColumnFooter, startCell.col, endCell.col)}
         </GridViewport>
       </Container>
     )
@@ -312,31 +311,31 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
     gridMeta: GridMeta,
     cellType: CellType.TopLeftIntersection | CellType.TopRightIntersection | CellType.BottomLeftIntersection | CellType.BottomRightIntersection,
   ): React.ReactNode => {
-    const { viewModel: { headers, footers } } = this.props;
+    const { viewModel: { headers, footers, intersections } } = this.props;
     let intersectionXAxis: FixedGridRows<H> | undefined;
     let intersectionYAxis: FixedGridColumns<H> | undefined;
-    let intersections: Cell<H>[][] | undefined;
+    let intersectionCells: Cell<H>[][] | undefined;
 
     switch (cellType) {
       case CellType.TopLeftIntersection:
-        intersectionXAxis = headers?.colHeader;
-        intersectionYAxis = headers?.rowHeader;
-        intersections = headers?.leftIntersections;
+        intersectionXAxis = headers?.colHeaders;
+        intersectionYAxis = headers?.rowHeaders;
+        intersectionCells = intersections?.topLeftIntersections;
         break;
       case CellType.BottomLeftIntersection:
-        intersectionXAxis = footers?.colFooter;
-        intersectionYAxis = headers?.rowHeader;
-        intersections = footers?.leftIntersections;
+        intersectionXAxis = footers?.colFooters;
+        intersectionYAxis = headers?.rowHeaders;
+        intersectionCells = intersections?.bottomLeftIntersections;
         break;
       case CellType.TopRightIntersection:
-        intersectionXAxis = headers?.colHeader;
-        intersectionYAxis = footers?.rowFooter;
-        intersections = headers?.rightIntersections;
+        intersectionXAxis = headers?.colHeaders;
+        intersectionYAxis = footers?.rowFooters;
+        intersectionCells = intersections?.topRightIntersections;
         break;
       case CellType.BottomRightIntersection:
-        intersectionXAxis = footers?.colFooter;
-        intersectionYAxis = footers?.rowFooter;
-        intersections = footers?.rightIntersections;
+        intersectionXAxis = footers?.colFooters;
+        intersectionYAxis = footers?.rowFooters;
+        intersectionCells = intersections?.bottomRightIntersections;
         break;
     }
 
@@ -345,9 +344,9 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
         let cell: Partial<InternalCell> = {
           renderer: () => <div style={{ backgroundColor: '#fff', height: '100%', }} />,
         };
-        if (intersections) {
-          if (intersections[row] && intersections[row][col]) {
-            cell = intersections[row][col];
+        if (intersectionCells) {
+          if (intersectionCells[row] && intersectionCells[row][col]) {
+            cell = intersectionCells[row][col];
           } else {
             // don't render a cell if intersections are defined, but no cell for this coord is defined
             // console.log(`not rendering a cell for ${cellType} at [${col}, ${row}]`);
@@ -742,15 +741,15 @@ class PowerGrid<T extends CellViewModel = CellViewModel, H extends CellViewModel
   };
 
   private readonly getGridMeta = (viewModel: GridViewModel<T, H>, scrollPosition: Position): GridMeta => {
-    const colHeaderHeights = viewModel.headers?.colHeader?.heights ?? [];
-    const totalColHeaderHeight = viewModel.headers?.colHeader ? viewModel.headers.colHeader.heights.reduce((ttl, h) => ttl += h, 0) : 0;
-    const rowHeaderWidths = viewModel.headers?.rowHeader?.widths ?? [];
-    const totalRowHeaderWidth = viewModel.headers?.rowHeader ? viewModel.headers.rowHeader.widths.reduce((ttl, w) => ttl += w, 0) : 0;
+    const colHeaderHeights = viewModel.headers?.colHeaders?.heights ?? [];
+    const totalColHeaderHeight = viewModel.headers?.colHeaders ? viewModel.headers.colHeaders.heights.reduce((ttl, h) => ttl += h, 0) : 0;
+    const rowHeaderWidths = viewModel.headers?.rowHeaders?.widths ?? [];
+    const totalRowHeaderWidth = viewModel.headers?.rowHeaders ? viewModel.headers.rowHeaders.widths.reduce((ttl, w) => ttl += w, 0) : 0;
     
-    const colFooterHeights = viewModel.footers?.colFooter?.heights ?? [];
-    const totalColFooterHeight = viewModel.footers?.colFooter ? viewModel.footers.colFooter.heights.reduce((ttl, h) => ttl += h, 0) : 0;
-    const rowFooterWidths = viewModel.footers?.rowFooter?.widths ?? [];
-    const totalRowFooterWidth = viewModel.footers?.rowFooter ? viewModel.footers.rowFooter.widths.reduce((ttl, w) => ttl += w, 0) : 0;
+    const colFooterHeights = viewModel.footers?.colFooters?.heights ?? [];
+    const totalColFooterHeight = viewModel.footers?.colFooters ? viewModel.footers.colFooters.heights.reduce((ttl, h) => ttl += h, 0) : 0;
+    const rowFooterWidths = viewModel.footers?.rowFooters?.widths ?? [];
+    const totalRowFooterWidth = viewModel.footers?.rowFooters ? viewModel.footers.rowFooters.widths.reduce((ttl, w) => ttl += w, 0) : 0;
     
     const colWidths = viewModel.colWidths;
     const rowHeights = viewModel.rowHeights;

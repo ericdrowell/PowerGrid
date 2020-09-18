@@ -57,16 +57,16 @@ const App: React.FC = () => {
       rowHeights: [...viewModel.rowHeights.slice(0, row), ...viewModel.rowHeights.slice(row + 1)],
       headers: {
         ...viewModel.headers,
-        rowHeader: {
-          ...viewModel.headers.rowHeader,
-          cells: [...viewModel.headers.rowHeader.cells.slice(0, row), ...viewModel.headers.rowHeader.cells.slice(row + 1)],
+        rowHeaders: {
+          ...viewModel.headers.rowHeaders,
+          cells: [...viewModel.headers.rowHeaders.cells.slice(0, row), ...viewModel.headers.rowHeaders.cells.slice(row + 1)],
         },
       },
       footers: {
         ...viewModel.footers,
-        rowFooter: {
-          ...viewModel.footers.rowFooter,
-          cells: [...viewModel.footers.rowFooter.cells.slice(0, row), ...viewModel.footers.rowFooter.cells.slice(row + 1)],
+        rowFooters: {
+          ...viewModel.footers.rowFooters,
+          cells: [...viewModel.footers.rowFooters.cells.slice(0, row), ...viewModel.footers.rowFooters.cells.slice(row + 1)],
         },
       },
     });

@@ -30,19 +30,20 @@ export type GridViewModel<T extends CellViewModel, H extends CellViewModel = T> 
   cells: Cell<T>[][];
   hideScrollbars?: boolean;
   maxCellsWhileScrolling?: number;
-  // TODO: we can do better for header/footer structure
   headers?: {
-    colHeader?: FixedGridRows<H>;
-    rowHeader?: FixedGridColumns<H>;
-    leftIntersections?: Cell<H>[][];
-    rightIntersections?: Cell<H>[][];
+    colHeaders?: FixedGridRows<H>;
+    rowHeaders?: FixedGridColumns<H>;
   };
   footers?: {
-    colFooter?: FixedGridRows<H>;
-    rowFooter?: FixedGridColumns<H>;
-    leftIntersections?: Cell<H>[][];
-    rightIntersections?: Cell<H>[][];
+    colFooters?: FixedGridRows<H>;
+    rowFooters?: FixedGridColumns<H>;
   };
+  intersections?: {
+    topLeftIntersections?: Cell<H>[][];
+    topRightIntersections?: Cell<H>[][];
+    bottomLeftIntersections?: Cell<H>[][];
+    bottomRightIntersections?: Cell<H>[][];
+  }
 };
 
 export type CellProps<T extends CellViewModel> = Position & Omit<Cell<T>, 'renderer'> & {
