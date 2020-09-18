@@ -43,8 +43,8 @@ const generateData = (
         heights: [],
         cells: [],
       },
-      leftIntersections: [],
-      rightIntersections: [],
+      leftIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
+      rightIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
     },
     footers: {
       rowFooter: {
@@ -55,8 +55,8 @@ const generateData = (
         heights: [],
         cells: [],
       },
-      leftIntersections: [],
-      rightIntersections: [],
+      leftIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
+      rightIntersections: GENERATE_INTERSECTIONS ? [] : undefined,
     },
   };
 
@@ -101,7 +101,7 @@ const generateData = (
       const cell: Cell<CellViewModel> = {
         renderer: HeaderCell,
         viewModel: {
-          value: 'R' + r
+          value: `R${r}C${c}`
         }
       };
 
@@ -126,7 +126,7 @@ const generateData = (
       const cell: Cell<CellViewModel> = {
         renderer: FooterCell,
         viewModel: {
-          value: 'R' + r
+          value: `R${r}C${c}`
         }
       };
 
@@ -151,7 +151,7 @@ const generateData = (
       const cell: Cell<CellViewModel> = {
         renderer: HeaderCell,
         viewModel: {
-          value: 'C' + c
+          value: `C${c}R${r}`
         }
       };
 
@@ -176,7 +176,7 @@ const generateData = (
       const cell: Cell<CellViewModel> = {
         renderer: FooterCell,
         viewModel: {
-          value: 'C' + c
+          value: `C${c}R${r}`
         }
       };
 

@@ -9,7 +9,7 @@ export type CellViewModel = {
 
 export type Cell<T extends CellViewModel> = {
   renderer: React.ComponentClass<CellProps<T>> | React.FC<CellProps<T>>;
-  viewModel?: T;
+  viewModel: T;
   colspan?: number;
   rowspan?: number;
 };
@@ -19,7 +19,7 @@ export type FixedGridRows<T extends CellViewModel> = {
   heights: number[];
 }
 
-export type FixedGridColumn<T extends CellViewModel> = {
+export type FixedGridColumns<T extends CellViewModel> = {
   cells: Cell<T>[][];
   widths: number[];
 }
@@ -33,13 +33,13 @@ export type GridViewModel<T extends CellViewModel, H extends CellViewModel = T> 
   // TODO: we can do better for header/footer structure
   headers?: {
     colHeader?: FixedGridRows<H>;
-    rowHeader?: FixedGridColumn<H>;
+    rowHeader?: FixedGridColumns<H>;
     leftIntersections?: Cell<H>[][];
     rightIntersections?: Cell<H>[][];
   };
   footers?: {
     colFooter?: FixedGridRows<H>;
-    rowFooter?: FixedGridColumn<H>;
+    rowFooter?: FixedGridColumns<H>;
     leftIntersections?: Cell<H>[][];
     rightIntersections?: Cell<H>[][];
   };

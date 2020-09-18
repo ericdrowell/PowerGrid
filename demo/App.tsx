@@ -7,14 +7,14 @@ import { DemoRatingCellViewModel } from './types';
 
 const NUM_COLS = 100;
 const NUM_ROWS = 4000;
-const NUM_COL_HEADER_ROWS = 2;
+const NUM_COL_HEADER_ROWS = 1;
 const NUM_ROW_HEADER_ROWS = 1;
-const NUM_COL_FOOTER_ROWS = 2;
-const NUM_ROW_FOOTER_ROWS = 3;
+const NUM_COL_FOOTER_ROWS = 1;
+const NUM_ROW_FOOTER_ROWS = 1;
 const CELL_WIDTH = 75;
 const CELL_HEIGHT = 30;
 const VIEWPORT_WIDTH = 1280;
-const VIEWPORT_HEIGHT = 550;
+const VIEWPORT_HEIGHT = 600;
 // const VIEWPORT_WIDTH = 800;
 // const VIEWPORT_HEIGHT = 500;
 const COL_HEADER_HEIGHT = 30;
