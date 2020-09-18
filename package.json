@@ -1,6 +1,6 @@
 {
   "name": "power-grid",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "An insanely fast React tree grid",
   "main": "dist/cjs/index.js",
   "module": "dist/index.js",
