@@ -4,6 +4,31 @@ import PowerGrid from '../src/PowerGrid';
 import { Position, Cell } from '../src/types';
 import generateData from './dataGenerator';
 import { DemoRatingCellViewModel } from './types';
+import CellFactory from './cells/CellFactory';
+import TextCell from './cells/TextCell';
+
+const HeaderCell = CellFactory({
+  backgroundColor: '#eee',
+  color: '#4a4a4a',
+  borderColor: '#ddd',
+  borderTop: 'none',
+  borderLeft: 'none',
+});
+
+const FooterCell = CellFactory({
+  backgroundColor: '#888',
+  color: '#eee',
+  borderColor: '#4a4a4a',
+  borderBottom: 'none',
+  borderRight: 'none',
+});
+
+const IntersectionCell = CellFactory({
+  backgroundColor: '#deeffa',
+  color: '#333',
+  borderColor: '#bddaeb',
+  borderWidth: '2px',
+})
 
 const NUM_COLS = 100;
 const NUM_ROWS = 4000;
@@ -38,6 +63,12 @@ const gridViewModel = generateData(
   NUM_ROW_FOOTER_ROWS,
   ROW_FOOTER_WIDTH,
   GENERATE_INTERSECTIONS,
+  {
+    TextCell,
+    HeaderCell,
+    FooterCell,
+    IntersectionCell,
+  }
 );
 
 console.log('gridViewModel:');

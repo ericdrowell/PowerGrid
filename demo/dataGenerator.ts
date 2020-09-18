@@ -1,4 +1,3 @@
-import { TextCell, HeaderCell, FooterCell, IntersectionCell } from './cells';
 import { CellViewModel, GridViewModel, Cell } from '../src/types';
 import { Rating, DemoRatingCellViewModel } from './types';
 
@@ -28,7 +27,14 @@ const generateData = (
   NUM_ROW_FOOTER_ROWS: number,
   ROW_FOOTER_WIDTH: number,
   GENERATE_INTERSECTIONS: boolean,
+  renderers: {
+    TextCell: React.FC,
+    HeaderCell: React.FC,
+    FooterCell: React.FC,
+    IntersectionCell: React.FC,
+  }
 ): GridViewModel<DemoRatingCellViewModel, CellViewModel> => {
+  const { TextCell, HeaderCell, FooterCell, IntersectionCell } = renderers;
   const gridViewModel: GridViewModel<DemoRatingCellViewModel, CellViewModel> = {
     // maxCellsWhileScrolling: 200,
     colWidths: [],
