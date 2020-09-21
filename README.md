@@ -123,3 +123,6 @@ let viewModel = {
   onCellClick={onCellClick}
 />
 ```
+## Grid Anatomy
+
+<img src="./grid-anatomy.png" />
