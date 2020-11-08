@@ -3,7 +3,7 @@
 ## Features
 * blazing fast performance and massive scale (100M cells+) via virtualized viewport
 * React interface
-* completely customizable cells via JSX and CSS
+* completely customizable cells via TSX (JSX) and CSS
 * cell interactivity
 * expand / collapse rows and columns
 * merged cells support (colspans and rowspans)
@@ -12,49 +12,56 @@
 * any number of fixed rows and headers
 * screen reader accessible via semantic table html
 
-## React Cell JSX Example (MyCell)
+## React Cell TSX Example (MyCell)
 
-
-```JSX
+```TSX
 import React from 'react';
-import { css } from 'emotion';
+import styled from '@emotion/styled';
+import { CellProps } from 'power-grid';
 
-const TextCell = (props) => {
-  let viewModel = props.viewModel;
+export type MyCellProps = CellProps<{
+  rating: string;
+  value: number;
+}>;
 
-  let styles = css`
-    && {
-      background-color: #eee;
+const Cell = styled.div<{ rating: string; }>(({ rating }) => {
+  let backgroundColor = '#eee';
+  let color = '#333';
+  switch (rating) {
+    case 'bad':
+      backgroundColor = '#ffc7ce';
+      color = '#9c0006';
+      break;
+    case 'neutral':
+      backgroundColor = '#ffeb9c';
+      color = '#9c5700';
+      break;
+    case 'good':
+      backgroundColor = '#c6efce';
+      color = '#267c27';
+      break;
+  }
+  return {
+    backgroundColor,
+    color,
+    height: '100%',
+    '&:hover': {
+      backgroundColor: '#b0d9fe',
+    },
+  };
+});
 
-      &.bad {
-        background-color: #ffc7ce;
-        color: #9c0006;
-      }
-
-      &.neutral {
-        background-color: #ffeb9c;
-        color: #9c5700;
-      }
-
-      &.good {
-        background-color: #c6efce;
-        color: #267c27;
-      }
-
-      &:hover {
-        background-color: #b0d9fe;
-      }
-    }
-  `;
+const MyCell: React.FC<MyCellProps> = (props: MyCellProps) => {
+  const { viewModel } = props;
 
   return (
-    <td className={'power-grid-cell ' + viewModel.rating + ' ' + styles} onClick={props.onClick} data-row={props.row} style={{transform: 'translate(' + props.x + 'px,' + props.y + 'px)', width: (props.width-2)+'px', height: props.height+'px'}}>
+    <Cell rating={viewModel.rating}>
       {viewModel.value}
-    </td>
-  )
+    </Cell>
+  );
 };
 
-export default TextCell;
+export default MyCell;
 ```
 
 ## View Model Example 
@@ -65,8 +72,6 @@ let viewModel = {
   maxCellsWhileScrolling: 1000,
   x: 0,
   y: 0,
-  width: 200,
-  height: 100,
   colWidths: [100, 120],
   rowHeights: [80, 60],
   // row based.  array of rows, and each row is an array of cells
@@ -110,6 +115,14 @@ let viewModel = {
 ## Usage App Example
 
 ```JSX
-<PowerGrid viewModel={viewModel} onViewModelUpdate={onViewModelUpdate} onCellClick={onCellClick}/>
+<PowerGrid
+  width={200}
+  height={100}
+  viewModel={viewModel}
+  onScroll={onScroll}
+  onCellClick={onCellClick}
+/>
 ```
+## Grid Anatomy
 
+<img src="./grid-anatomy.png" />

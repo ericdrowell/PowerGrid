@@ -1,44 +1,41 @@
 {
   "name": "power-grid",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "An insanely fast React tree grid",
-  "main": "index.html",
+  "main": "dist/cjs/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "Eric Rowell",
   "license": "UNLICENSED",
   "private": true,
-  "watch": {
-    "build-and-start": {
-      "patterns": [
-        "client",
-        "server"
-      ],
-      "extensions": "js, jsx, scss"
-    }
-  },
   "devDependencies": {
-    "emotion": "^10.0.27",
-    "node-sass": "^4.12.0",
-    "normalize-scss": "^7.0.1",
-    "npm-watch": "^0.6.0",
-    "uglify-es": "^3.3.9",
-    "uglifycss": "0.0.29",
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.10.4",
+    "@babel/register": "^7.4.4",
+    "@emotion/babel-preset-css-prop": "^10.0.27",
+    "@types/react": "^16.9.49",
+    "@types/react-dom": "^16.9.8",
+    "babel-loader": "^8.0.6",
+    "html-webpack-plugin": "^4.4.1",
+    "typescript": "^4.0.2",
     "webpack": "^4.35.0",
     "webpack-cli": "^3.3.5",
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.4",
-    "@babel/preset-react": "^7.0.0",
-    "@babel/register": "^7.4.4",
-    "babel-loader": "^8.0.6",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "@emotion/core": "^10.0.35",
+    "@emotion/styled": "^10.0.27",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   },
   "scripts": {
-    "start": "npm install && npm run build",
-    "build": "npm run clean && webpack && npm run build-css && npm run copy-html",
-    "build-css": "node-sass client/app.scss public/css/app.css",
-    "copy-html": "cp ./client/index.html public/index.html",
-    "minify": "./node_modules/uglify-es/bin/uglifyjs public/js/PowerGrid.js -o public/js/PowerGrid.js && ./node_modules/uglifycss/uglifycss public/css/PowerGrid.css --output public/css/PowerGrid.css",
-    "clean": "rm -rf ./public && mkdir ./public",
-    "watch": "npm-watch"
+    "start": "npm run clean && webpack-dev-server --open",
+    "build": "tsc && tsc --outDir ./dist/cjs --module CommonJS",
+    "build:demo": "npm run clean && webpack",
+    "build:demo:watch": "npm run build:demo -- --watch",
+    "clean": "rm -rf ./public ./dist"
   }
 }
